@@ -7,13 +7,14 @@ type Props = { adminId: string; applications: any[]; reports: any[]; listings: a
 export function AdminDashboard({ adminId, applications, reports, listings, audit }: Props) {
   const supabase = createClient(); const [notice, setNotice] = useState('')
   async function review(application: any, status: 'approved' | 'rejected') {
+    const reason = status === 'rejected' ? window.prompt('Reason for rejection')?.trim() || 'Your verification application was rejected.' : ''
     setNotice('Saving review…')
     const { error } = await supabase.from('verification_applications').update({ status, reviewed_at: new Date().toISOString() }).eq('id', application.id)
     if (!error && status === 'approved') {
       await supabase.from('landlord_profiles').update({ verification_status: 'approved' }).eq('user_id', application.landlord_id)
       await supabase.from('properties').update({ is_verified_landlord: true }).eq('landlord_id', application.landlord_id)
     }
-    await supabase.from('notifications').insert({ user_id: application.landlord_id, title: `Verification ${status}`, message: status === 'approved' ? 'Your landlord verification has been approved.' : 'Your verification application needs attention.' })
+    await supabase.from('notifications').insert({ user_id: application.landlord_id, type: status === 'approved' ? 'verification_approved' : 'verification_rejected', title: status === 'approved' ? 'Verification approved' : 'Verification rejected', message: status === 'approved' ? 'Your landlord verification has been approved.' : reason, is_read: false, related_entity_id: application.id })
     await supabase.from('admin_audit_logs').insert({ admin_id: adminId, action: status === 'approved' ? 'approve_verification' : 'reject_verification', entity_type: 'verification_application', entity_id: application.id })
     setNotice(error ? 'Could not save the review.' : 'Review saved.'); if (!error) window.location.reload()
   }
