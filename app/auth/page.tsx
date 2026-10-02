@@ -78,11 +78,18 @@ export default function AuthPage() {
     <main className="min-h-screen bg-[#f6f9fc] px-6 py-10 text-[#1B2A4A]">
       <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl lg:grid-cols-2">
         <section className="bg-[#1B2A4A] p-10 text-white lg:p-14">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">VerifiedRent Ghana</p>
+          <div className="flex items-center gap-3">
+            <img src="/icon.svg" alt="VerifiedRent Ghana logo" className="size-12 rounded-2xl bg-white p-2 object-contain" />
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">VerifiedRent Ghana</p>
+          </div>
           <h1 className="mt-20 text-4xl font-bold leading-tight">Rent with more confidence.</h1>
           <p className="mt-5 max-w-sm text-slate-300">Secure accounts, verified landlords, and trusted homes across Ghana.</p>
         </section>
         <section className="p-8 lg:p-14">
+          <div className="mb-8 flex items-center gap-3">
+            <img src="/icon.svg" alt="VerifiedRent Ghana logo" className="size-10 rounded-xl bg-emerald-50 p-2 object-contain" />
+            <span className="font-bold tracking-tight text-[#1B2A4A]">VerifiedRent Ghana</span>
+          </div>
           <div className="mb-8 flex gap-2 rounded-xl bg-slate-100 p-1">
             <button type="button" onClick={() => { setMode('signin'); setMessage('') }} className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'signin' ? 'bg-white shadow' : 'text-slate-500'}`}>Sign in</button>
             <button type="button" onClick={() => { setMode('signup'); setMessage('') }} className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'signup' ? 'bg-white shadow' : 'text-slate-500'}`}>Create account</button>
