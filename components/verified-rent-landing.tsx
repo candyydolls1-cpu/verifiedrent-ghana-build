@@ -4,14 +4,9 @@ import { useState } from 'react'
 import { Building2, ChevronDown, Check, Home, MapPin, Menu, Search, ShieldCheck, Tag, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-const regions = [
-  { name: 'Greater Accra', icon: Building2 },
-  { name: 'Ashanti', icon: ShieldCheck },
-  { name: 'Western', icon: Building2 },
-  { name: 'Central', icon: Home },
-]
+const regionIcons = [Building2, ShieldCheck, Building2, Home]
 
-export function VerifiedRentLanding() {
+export function VerifiedRentLanding({ regions: availableRegions }: { regions: { id: string; name: string }[] }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
   const [location, setLocation] = useState('')
@@ -30,8 +25,15 @@ export function VerifiedRentLanding() {
   }
 
   function handleSearch() {
-    const params = new URLSearchParams({ location, type, price })
-    window.location.hash = `search?${params.toString()}`
+    const params = new URLSearchParams()
+    if (location) params.set('region', location)
+    if (type) params.set('type', type)
+    if (price) params.set('price', price)
+    window.location.assign(`/properties?${params.toString()}`)
+  }
+
+  function browseRegion(id: string) {
+    window.location.assign(`/properties?region=${encodeURIComponent(id)}`)
   }
 
   return (
@@ -68,9 +70,9 @@ export function VerifiedRentLanding() {
         </div>
       </section>
 
-      <section id="search" className="relative z-10 mx-auto -mt-12 max-w-6xl px-5 sm:px-8"><div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-900/10 sm:p-8"><div className="mb-6 flex items-center gap-3"><span className="grid size-11 place-items-center rounded-full bg-emerald-50 text-[#10B981]"><Search className="size-5" /></span><div><h2 className="text-xl font-extrabold">Search properties</h2><p className="text-sm text-slate-500">Find a verified rental that feels like home.</p></div></div><div className="grid gap-4 md:grid-cols-3"><SelectField label="Location" value={location} onChange={setLocation} icon={MapPin} options={['Greater Accra', 'Ashanti', 'Western', 'Central']} /><SelectField label="Property type" value={type} onChange={setType} icon={Home} options={['Apartment', 'House', 'Room', 'Studio']} /><SelectField label="Price range" value={price} onChange={setPrice} icon={Tag} options={['Under GH₵1,000', 'GH₵1,000 – GH₵2,500', 'GH₵2,500+']} /></div><button onClick={handleSearch} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1B2A4A] px-5 py-4 font-bold text-white transition hover:bg-[#243b67]"><Search className="size-5" /> Search verified properties</button></div></section>
+      <section id="search" className="relative z-10 mx-auto -mt-12 max-w-6xl px-5 sm:px-8"><div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-900/10 sm:p-8"><div className="mb-6 flex items-center gap-3"><span className="grid size-11 place-items-center rounded-full bg-emerald-50 text-[#10B981]"><Search className="size-5" /></span><div><h2 className="text-xl font-extrabold">Search properties</h2><p className="text-sm text-slate-500">Find a verified rental that feels like home.</p></div></div><div className="grid gap-4 md:grid-cols-3"><SelectField label="Location" value={location} onChange={setLocation} icon={MapPin} options={availableRegions.map((region) => ({ label: region.name, value: region.id }))} /><SelectField label="Property type" value={type} onChange={setType} icon={Home} options={['Apartment', 'House', 'Room', 'Studio']} /><SelectField label="Price range" value={price} onChange={setPrice} icon={Tag} options={[{ label: 'Under GH₵1,000', value: 'under-1000' }, { label: 'GH₵1,000 – GH₵2,500', value: '1000-2500' }, { label: 'GH₵2,500+', value: '2500-plus' }]} /></div><button onClick={handleSearch} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1B2A4A] px-5 py-4 font-bold text-white transition hover:bg-[#243b67]"><Search className="size-5" /> Search verified properties</button></div></section>
 
-      <section id="regions" className="mx-auto max-w-7xl px-5 pb-24 pt-20 sm:px-8 lg:px-12"><div className="flex items-end justify-between gap-4"><div><p className="font-bold uppercase tracking-[0.18em] text-[#10B981]">Start exploring</p><h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Browse by region</h2></div><a href="#search" className="hidden text-sm font-bold text-[#079669] sm:block">View all regions →</a></div><div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">{regions.map(({ name, icon: Icon }) => <a href="#search" key={name} className="group rounded-2xl border border-slate-200 bg-white p-6 text-center transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/5"><span className="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-50 text-[#10B981] transition group-hover:bg-[#10B981] group-hover:text-white"><Icon className="size-7" /></span><h3 className="mt-4 font-bold">{name}</h3><p className="mt-1 text-sm text-slate-500">Verified rentals</p></a>)}</div></section>
+      <section id="regions" className="mx-auto max-w-7xl px-5 pb-24 pt-20 sm:px-8 lg:px-12"><div className="flex items-end justify-between gap-4"><div><p className="font-bold uppercase tracking-[0.18em] text-[#10B981]">Start exploring</p><h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Browse by region</h2></div><a href="#search" className="hidden text-sm font-bold text-[#079669] sm:block">View all regions →</a></div><div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">{availableRegions.map((region, index) => { const Icon = regionIcons[index % regionIcons.length]; return <button type="button" onClick={() => browseRegion(region.id)} key={region.id} className="group rounded-2xl text-left border border-slate-200 bg-white p-6 text-center transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/5"><span className="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-50 text-[#10B981] transition group-hover:bg-[#10B981] group-hover:text-white"><Icon className="size-7" /></span><h3 className="mt-4 font-bold">{name}</h3><p className="mt-1 text-sm text-slate-500">Verified rentals</p></button>})}</div></section>
 
       <section id="how-it-works" className="bg-[#1B2A4A] px-5 py-20 text-white sm:px-8 lg:px-12"><div className="mx-auto max-w-7xl"><div className="max-w-xl"><p className="font-bold uppercase tracking-[0.18em] text-emerald-300">Rent with confidence</p><h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Verified landlords. Trusted rentals.</h2><p className="mt-4 leading-7 text-blue-100/75">Every landlord on VerifiedRent Ghana goes through a thorough verification process so you can rent with confidence.</p></div><div className="mt-10 grid gap-5 md:grid-cols-3 vr-stagger">{['Search verified listings', 'Connect with confidence', 'Move into your next home'].map((title, index) => <div key={title} className="rounded-2xl border border-white/10 bg-white/5 p-6"><span className="grid size-10 place-items-center rounded-full bg-[#10B981] font-black">{index + 1}</span><h3 className="mt-5 text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-blue-100/65">A simpler, safer way to find and secure quality rentals across Ghana.</p></div>)}</div></div></section>
 
@@ -80,6 +82,6 @@ export function VerifiedRentLanding() {
   )
 }
 
-function SelectField({ label, value, onChange, icon: Icon, options }: { label: string; value: string; onChange: (value: string) => void; icon: typeof MapPin; options: string[] }) {
-  return <label className="relative block"><span className="mb-2 block text-sm font-bold">{label}</span><span className="pointer-events-none absolute bottom-0 left-4 flex h-12 items-center text-slate-400"><Icon className="size-5" /></span><select value={value} onChange={(event) => onChange(event.target.value)} className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-12 pr-10 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"><option value="">Select {label.toLowerCase()}</option>{options.map((option) => <option key={option}>{option}</option>)}</select><ChevronDown className="pointer-events-none absolute bottom-4 right-4 size-4 text-slate-400" /></label>
+function SelectField({ label, value, onChange, icon: Icon, options }: { label: string; value: string; onChange: (value: string) => void; icon: typeof MapPin; options: { label: string; value: string }[] }) {
+  return <label className="relative block"><span className="mb-2 block text-sm font-bold">{label}</span><span className="pointer-events-none absolute bottom-0 left-4 flex h-12 items-center text-slate-400"><Icon className="size-5" /></span><select value={value} onChange={(event) => onChange(event.target.value)} className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-12 pr-10 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"><option value="">Select {label.toLowerCase()}</option>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><ChevronDown className="pointer-events-none absolute bottom-4 right-4 size-4 text-slate-400" /></label>
 }
