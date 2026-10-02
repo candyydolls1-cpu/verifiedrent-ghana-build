@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <BackgroundLogo />
-        <main className="relative z-20">{children}</main>
+        <main className="relative z-10">{children}</main>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
