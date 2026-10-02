@@ -5,7 +5,7 @@ export default async function ExplorePage() {
   const supabase = await createClient()
   const { data: properties, error } = await supabase
     .from('properties')
-    .select('id,title,rent_amount,property_type,created_at')
+    .select('id,title,rent_amount,property_type,region_id,created_at')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
 
