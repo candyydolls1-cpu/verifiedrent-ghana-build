@@ -1,11 +1,20 @@
 import { PropertyResults } from '@/components/property-results'
+import { DistrictResults } from '@/components/district-results'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function PropertiesPage({ searchParams }: { searchParams: Promise<{ region?: string; type?: string; price?: string }> }) {
+export default async function PropertiesPage({ searchParams }: { searchParams: Promise<{ region?: string; district?: string; type?: string; price?: string }> }) {
   const params = await searchParams
   const supabase = await createClient()
   let query = supabase.from('properties').select('id,title,description,property_type,rent_amount,rent_currency,rent_frequency,neighborhood,city_id,property_images(image_url,is_primary),regions(name),cities(name)').eq('status', 'published').order('created_at', { ascending: false })
   let selectedRegionName = ''
+  if (params.region) {
+    const byId = await supabase.from('regions').select('id,name').eq('id', params.region).maybeSingle()
+    const selectedRegion = byId.data ?? (await supabase.from('regions').select('id,name').ilike('name', params.region).maybeSingle()).data
+    if (selectedRegion) {
+      const { data: districts } = await supabase.from('districts').select('id,name,capital_city').eq('region_id', selectedRegion.id).order('name')
+      return <DistrictResults region={selectedRegion.name} districts={districts ?? []} />
+    }
+  }
   if (params.region) {
     const byId = await supabase.from('regions').select('id,name').eq('id', params.region).maybeSingle()
     const selectedRegion = byId.data ?? (await supabase.from('regions').select('id,name').ilike('name', params.region).maybeSingle()).data
