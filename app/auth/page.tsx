@@ -44,19 +44,33 @@ export default function AuthPage() {
           data: { full_name: name.trim(), role },
         },
       })
-      setLoading(false)
       if (error) {
+        setLoading(false)
         setMessage(messageForAuthError(error.message))
         return
       }
-      if (!data.session || !data.user) {
-        setMessage('Your account was created, but Supabase did not return a session. Please try signing in again.')
-        return
+
+      let session = data.session
+      let user = data.user
+
+      if (!session) {
+        const fallback = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+        session = fallback.data.session
+        user = fallback.data.user
+        if (fallback.error || !session || !user) {
+          setLoading(false)
+          setMessage('We could not complete account setup. Please try again.')
+          return
+        }
       }
 
+      setLoading(false)
       await supabase.from('profiles').upsert({
-        id: data.user.id,
-        email: data.user.email,
+        id: user.id,
+        email: user.email,
         full_name: name.trim() || null,
         display_name: name.trim() ? name.trim().split(/\s+/)[0] : null,
         role,
