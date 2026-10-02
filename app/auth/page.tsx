@@ -41,7 +41,7 @@ export default function AuthPage() {
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: { full_name: name.trim(), role },
         },
       })
