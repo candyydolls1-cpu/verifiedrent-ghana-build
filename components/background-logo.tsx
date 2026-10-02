@@ -4,8 +4,8 @@ export function BackgroundLogo() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center overflow-hidden"
     >
-      <div className="vr-watermark-logo relative aspect-[3/2] h-[100vh] w-[200vw] min-w-[100vw] max-w-none overflow-hidden rounded-none opacity-[0.12] shadow-2xl sm:h-[100vh] sm:w-[180vw]">
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#8f0d20_0%,#8f0d20_33.33%,#b8920d_33.33%,#b8920d_66.66%,#064d2f_66.66%,#064d2f_100%)]" /><div className="absolute inset-0 bg-[#071a35]/35" />
+      <div className="vr-watermark-logo relative aspect-[3/2] h-[100vh] w-[200vw] min-w-[100vw] max-w-none overflow-hidden rounded-none opacity-[0.34] shadow-2xl sm:h-[100vh] sm:w-[180vw]">
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#5c0715_0%,#5c0715_33.33%,#806200_33.33%,#806200_66.66%,#023820_66.66%,#023820_100%)]" /><div className="absolute inset-0 bg-[#030b18]/25" />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[clamp(4rem,12vw,9rem)] leading-none text-black/80" aria-hidden="true">★</span>
         <span className="absolute inset-0 flex items-center justify-center">
           <span className="grid size-[46%] place-items-center rounded-full bg-white/85 p-4 shadow-xl backdrop-blur-sm sm:p-7">
