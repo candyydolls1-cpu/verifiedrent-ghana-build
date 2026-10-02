@@ -153,6 +153,43 @@
   }
 }
 
+@keyframes vr-fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vr-letter-rise {
+  from { opacity: 0; transform: translateY(0.5em); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes vr-pulse-glow {
+  0%, 100% { box-shadow: 0 10px 30px rgba(16, 185, 129, 0.18); }
+  50% { box-shadow: 0 12px 42px rgba(16, 185, 129, 0.38); }
+}
+
+@keyframes vr-shimmer {
+  0% { transform: translateX(-140%); }
+  100% { transform: translateX(140%); }
+}
+
+.vr-fade-up { animation: vr-fade-up 900ms cubic-bezier(.22,1,.36,1) both; }
+.vr-fade-up-delay-1 { animation-delay: 120ms; }
+.vr-fade-up-delay-2 { animation-delay: 240ms; }
+.vr-fade-up-delay-3 { animation-delay: 360ms; }
+.vr-pulse-glow { animation: vr-pulse-glow 3.2s ease-in-out infinite; }
+.vr-lift { transition: transform 450ms cubic-bezier(.22,1,.36,1), box-shadow 450ms ease; }
+.vr-lift:hover { transform: translateY(-8px) rotate(-0.35deg); box-shadow: 0 24px 48px rgba(15, 35, 61, 0.16); }
+.vr-shimmer { position: relative; isolation: isolate; overflow: hidden; }
+.vr-shimmer::after { content: ''; position: absolute; inset: 0; width: 40%; background: linear-gradient(105deg, transparent, rgba(255,255,255,.55), transparent); animation: vr-shimmer 3.8s ease-in-out infinite; pointer-events: none; }
+.vr-stagger > * { animation: vr-fade-up 700ms cubic-bezier(.22,1,.36,1) both; }
+.vr-stagger > *:nth-child(2) { animation-delay: 100ms; }
+.vr-stagger > *:nth-child(3) { animation-delay: 200ms; }
+.vr-stagger > *:nth-child(4) { animation-delay: 300ms; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 1ms !important; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
