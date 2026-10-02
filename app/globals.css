@@ -205,6 +205,12 @@
 }
 
 .vr-float { animation: vr-float 6s ease-in-out 1.2s infinite; }
+
+.vr-ghana-pattern {
+  background-image: linear-gradient(135deg, rgba(252, 209, 22, 0.08) 25%, transparent 25%), linear-gradient(315deg, rgba(206, 17, 38, 0.06) 25%, transparent 25%);
+  background-position: 0 0, 14px 14px;
+  background-size: 28px 28px;
+}
 .vr-breathe { animation: vr-breathe 5s ease-in-out infinite; }
 .vr-image-reveal { animation: vr-image-reveal 900ms cubic-bezier(.22,1,.36,1) 180ms both; }
 .vr-card-enter { animation: vr-card-enter 700ms cubic-bezier(.22,1,.36,1) both; }
