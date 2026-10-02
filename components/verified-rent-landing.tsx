@@ -60,7 +60,7 @@ export function VerifiedRentLanding({ regions: availableRegions }: { regions: { 
             <span className="text-lg font-extrabold tracking-[-0.04em] sm:text-xl">VerifiedRent Ghana</span>
           </a>
           <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-600 md:flex" aria-label="Main navigation">
-            <a href="#how-it-works" className="transition-colors hover:text-[#10B981]">How it works</a>
+            <a href="/how-it-works" className="transition-colors hover:text-[#10B981]">How it works</a>
             <a href="#regions" className="transition-colors hover:text-[#10B981]">Browse regions</a>
             <button onClick={handleGetStarted} className="rounded-xl bg-[#10B981] px-5 py-3 text-white shadow-lg shadow-emerald-500/20 transition hover:bg-[#079669]">Get started</button>
           </nav>
