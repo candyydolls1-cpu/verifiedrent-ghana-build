@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { BackgroundLogo } from '@/components/background-logo'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -23,7 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <BackgroundLogo />
+        <main className="relative z-20">{children}</main>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

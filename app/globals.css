@@ -206,6 +206,17 @@
 
 .vr-float { animation: vr-float 6s ease-in-out 1.2s infinite; }
 
+@keyframes vr-watermark-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1.5deg) scale(1); }
+  50% { transform: translate3d(0, -15px, 0) rotate(1.5deg) scale(1.025); }
+}
+
+.vr-watermark-logo {
+  animation: vr-watermark-float 12s ease-in-out infinite;
+  will-change: transform;
+}
+
+
 .vr-ghana-pattern {
   background-image: linear-gradient(135deg, rgba(252, 209, 22, 0.08) 25%, transparent 25%), linear-gradient(315deg, rgba(206, 17, 38, 0.06) 25%, transparent 25%);
   background-position: 0 0, 14px 14px;
