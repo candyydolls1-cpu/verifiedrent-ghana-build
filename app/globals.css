@@ -178,6 +178,49 @@
 .vr-fade-up-delay-2 { animation-delay: 240ms; }
 .vr-fade-up-delay-3 { animation-delay: 360ms; }
 .vr-pulse-glow { animation: vr-pulse-glow 3.2s ease-in-out infinite; }
+
+@keyframes vr-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(0.5deg); }
+}
+
+@keyframes vr-breathe {
+  0%, 100% { opacity: 0.35; transform: scale(0.96); }
+  50% { opacity: 0.75; transform: scale(1.04); }
+}
+
+@keyframes vr-image-reveal {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vr-card-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vr-header-enter {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.vr-float { animation: vr-float 6s ease-in-out 1.2s infinite; }
+.vr-breathe { animation: vr-breathe 5s ease-in-out infinite; }
+.vr-image-reveal { animation: vr-image-reveal 900ms cubic-bezier(.22,1,.36,1) 180ms both; }
+.vr-card-enter { animation: vr-card-enter 700ms cubic-bezier(.22,1,.36,1) both; }
+.vr-header-enter { animation: vr-header-enter 650ms cubic-bezier(.22,1,.36,1) both; }
+.vr-delay-1 { animation-delay: 80ms; }
+.vr-delay-2 { animation-delay: 160ms; }
+.vr-delay-3 { animation-delay: 240ms; }
+.vr-delay-4 { animation-delay: 320ms; }
+.vr-delay-5 { animation-delay: 400ms; }
+.vr-delay-6 { animation-delay: 480ms; }
+.vr-delay-7 { animation-delay: 560ms; }
+.vr-delay-8 { animation-delay: 640ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
 .vr-lift { transition: transform 450ms cubic-bezier(.22,1,.36,1), box-shadow 450ms ease; }
 .vr-lift:hover { transform: translateY(-8px) rotate(-0.35deg); box-shadow: 0 24px 48px rgba(15, 35, 61, 0.16); }
 .vr-shimmer { position: relative; isolation: isolate; overflow: hidden; }
