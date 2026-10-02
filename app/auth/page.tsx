@@ -41,7 +41,6 @@ export default function AuthPage() {
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: { full_name: name.trim(), role },
         },
       })
@@ -50,13 +49,21 @@ export default function AuthPage() {
         setMessage(messageForAuthError(error.message))
         return
       }
-      if (data.session) {
-        router.replace('/dashboard')
-        router.refresh()
+      if (!data.session || !data.user) {
+        setMessage('Your account was created, but Supabase did not return a session. Please try signing in again.')
         return
       }
-      setMessage('Account created. Check your email and click the confirmation link before signing in.')
-      setMode('signin')
+
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email: data.user.email,
+        full_name: name.trim() || null,
+        display_name: name.trim() ? name.trim().split(/\s+/)[0] : null,
+        role,
+      }, { onConflict: 'id' })
+
+      router.replace('/dashboard')
+      router.refresh()
       return
     }
 
@@ -67,7 +74,7 @@ export default function AuthPage() {
       return
     }
     if (!data.session) {
-      setMessage('Please confirm your email before signing in.')
+      setMessage('Sign-in completed without a session. Please try again.')
       return
     }
 
