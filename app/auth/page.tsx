@@ -1,11 +1,104 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+function messageForAuthError(message: string) {
+  const normalized = message.toLowerCase()
+  if (normalized.includes('invalid login credentials') || normalized.includes('invalid email or password')) return 'Invalid email or password.'
+  if (normalized.includes('email not confirmed')) return 'Please confirm your email before signing in.'
+  if (normalized.includes('already registered') || normalized.includes('user already registered')) return 'An account with this email already exists. Try signing in.'
+  if (normalized.includes('password')) return 'Use a password with at least 6 characters.'
+  if (normalized.includes('rate limit')) return 'Too many attempts. Please wait a moment and try again.'
+  return 'We could not complete that request. Please check your details and try again.'
+}
+
 export default function AuthPage() {
-  const router = useRouter(); const [mode, setMode] = useState<'signin'|'signup'>('signin'); const [role, setRole] = useState<'tenant'|'landlord'>('tenant'); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [name, setName] = useState(''); const [message, setMessage] = useState(''); const [loading, setLoading] = useState(false)
-  async function submit(event: FormEvent) { event.preventDefault(); setLoading(true); setMessage(''); const supabase = createClient(); const result = mode === 'signin' ? await supabase.auth.signInWithPassword({ email, password }) : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`, data: { full_name: name, role } } }); setLoading(false); if (result.error) { setMessage(result.error.message.includes('Invalid') ? 'Invalid email or password.' : result.error.message); return } if (mode === 'signup') { setMessage('Check your email to confirm your account, then sign in.'); setMode('signin'); return } router.push('/dashboard') }
-  return <main className="min-h-screen bg-[#f6f9fc] px-6 py-10 text-[#1B2A4A]"><div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl lg:grid-cols-2"><section className="bg-[#1B2A4A] p-10 text-white lg:p-14"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">VerifiedRent Ghana</p><h1 className="mt-20 text-4xl font-bold leading-tight">Rent with more confidence.</h1><p className="mt-5 max-w-sm text-slate-300">Secure accounts, verified landlords, and trusted homes across Ghana.</p></section><section className="p-8 lg:p-14"><div className="mb-8 flex gap-2 rounded-xl bg-slate-100 p-1"><button onClick={() => setMode('signin')} className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'signin' ? 'bg-white shadow' : 'text-slate-500'}`}>Sign in</button><button onClick={() => setMode('signup')} className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'signup' ? 'bg-white shadow' : 'text-slate-500'}`}>Create account</button></div><h2 className="text-3xl font-bold">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2><p className="mt-2 text-slate-500">{mode === 'signin' ? 'Access your rental workspace.' : 'Choose how you will use VerifiedRent.'}</p><form onSubmit={submit} className="mt-8 flex flex-col gap-4">{mode === 'signup' && <input required value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />}{mode === 'signup' && <div className="grid grid-cols-2 gap-2">{(['tenant','landlord'] as const).map(item => <button type="button" key={item} onClick={() => setRole(item)} className={`rounded-xl border px-4 py-3 capitalize ${role === item ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : ''}`}>{item}</button>)}</div>}<input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" /><input required minLength={6} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" /><button disabled={loading} className="rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-white hover:bg-emerald-600 disabled:opacity-60">{loading ? 'Please wait…' : mode === 'signin' ? 'Sign in securely' : 'Create account'}</button>{message && <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-600">{message}</p>}</form></section></div></main>
+  const router = useRouter()
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [role, setRole] = useState<'tenant' | 'landlord'>('tenant')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const error = new URLSearchParams(window.location.search).get('error')
+    if (error === 'confirmation_failed') setMessage('That confirmation link is invalid or has expired. Request a new confirmation email.')
+    if (error === 'missing_confirmation_code') setMessage('That confirmation link is incomplete. Request a new confirmation email.')
+  }, [])
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setLoading(true)
+    setMessage('')
+    const supabase = createClient()
+
+    if (mode === 'signup') {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`,
+          data: { full_name: name.trim(), role },
+        },
+      })
+      setLoading(false)
+      if (error) {
+        setMessage(messageForAuthError(error.message))
+        return
+      }
+      if (data.session) {
+        router.replace('/dashboard')
+        router.refresh()
+        return
+      }
+      setMessage('Account created. Check your email and click the confirmation link before signing in.')
+      setMode('signin')
+      return
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    setLoading(false)
+    if (error) {
+      setMessage(messageForAuthError(error.message))
+      return
+    }
+    if (!data.session) {
+      setMessage('Please confirm your email before signing in.')
+      return
+    }
+    router.replace('/dashboard')
+    router.refresh()
+  }
+
+  return (
+    <main className="min-h-screen bg-[#f6f9fc] px-6 py-10 text-[#1B2A4A]">
+      <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl lg:grid-cols-2">
+        <section className="bg-[#1B2A4A] p-10 text-white lg:p-14">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">VerifiedRent Ghana</p>
+          <h1 className="mt-20 text-4xl font-bold leading-tight">Rent with more confidence.</h1>
+          <p className="mt-5 max-w-sm text-slate-300">Secure accounts, verified landlords, and trusted homes across Ghana.</p>
+        </section>
+        <section className="p-8 lg:p-14">
+          <div className="mb-8 flex gap-2 rounded-xl bg-slate-100 p-1">
+            <button type="button" onClick={() => { setMode('signin'); setMessage('') }} className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'signin' ? 'bg-white shadow' : 'text-slate-500'}`}>Sign in</button>
+            <button type="button" onClick={() => { setMode('signup'); setMessage('') }} className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${mode === 'signup' ? 'bg-white shadow' : 'text-slate-500'}`}>Create account</button>
+          </div>
+          <h2 className="text-3xl font-bold">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>
+          <p className="mt-2 text-slate-500">{mode === 'signin' ? 'Access your rental workspace.' : 'Choose how you will use VerifiedRent.'}</p>
+          <form onSubmit={submit} className="mt-8 flex flex-col gap-4">
+            {mode === 'signup' && <input required value={name} onChange={event => setName(event.target.value)} placeholder="Full name" autoComplete="name" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />}
+            {mode === 'signup' && <div className="grid grid-cols-2 gap-2">{(['tenant', 'landlord'] as const).map(item => <button type="button" key={item} onClick={() => setRole(item)} className={`rounded-xl border px-4 py-3 capitalize ${role === item ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : ''}`}>{item}</button>)}</div>}
+            <input required type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="Email address" autoComplete="email" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />
+            <input required minLength={6} type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Password (6+ characters)" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />
+            {message && <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p>}
+            <button disabled={loading} className="rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">{loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}</button>
+          </form>
+        </section>
+      </div>
+    </main>
+  )
 }

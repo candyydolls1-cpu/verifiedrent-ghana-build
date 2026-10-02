@@ -22,7 +22,11 @@ export function VerifiedRentLanding() {
     const supabase = createClient()
     const { data } = await supabase.auth.getUser()
     setSignedIn(Boolean(data.user))
-    if (!data.user) window.location.hash = 'sign-in'
+    if (data.user) {
+      window.location.assign('/dashboard')
+      return
+    }
+    window.location.assign('/auth')
   }
 
   function handleSearch() {
