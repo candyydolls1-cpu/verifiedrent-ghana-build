@@ -6,7 +6,7 @@ import { useState } from 'react'
 
 const landlordSteps = [
   { icon: UserRound, title: 'Create your account', body: 'Sign up with your email and create your landlord account in a few simple steps.' },
-  { icon: Camera, title: 'Verify your identity', body: 'Capture a live selfie, upload your documents, then pay the GH₵75 annual verification fee through Paystack or mobile money.' },
+  { icon: Camera, title: 'Verify your identity', body: 'Capture a live selfie, upload your documents, then pay the GH₵75 annual verification fee through Paystack or mobile money.', href: '/auth?mode=signup&role=landlord' },
   { icon: BadgeCheck, title: 'Become verified', body: 'Once approved, you are a Verified Landlord. Your listings carry a green badge tenants can trust.' },
   { icon: Home, title: 'Post your property', body: 'Add photos, location, price, and amenities. Tenants see your home and reach you directly.' },
   { icon: BarChart3, title: 'Track your impact', body: 'See how many people viewed, liked, and contacted you about each property.' },
@@ -23,7 +23,7 @@ const tenantSteps = [
 function StepCard({ step, index, accent }: { step: typeof landlordSteps[number]; index: number; accent: 'gold' | 'emerald' }) {
   const Icon = step.icon
   return <article className="relative rounded-[2rem] border border-white/10 bg-[#263858] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.12)] sm:p-8">
-    <div className="flex items-start gap-5"><div className={`grid size-14 shrink-0 place-items-center rounded-2xl ${accent === 'gold' ? 'bg-[#fcd116] text-[#172642]' : 'bg-[#10b981] text-white'}`}><Icon className="size-7" /></div><div><p className={`text-xs font-black uppercase tracking-[0.2em] ${accent === 'gold' ? 'text-[#fcd116]' : 'text-emerald-300'}`}>Step {index + 1}</p><h3 className="mt-2 text-xl font-black text-white sm:text-2xl">{step.title}</h3><p className="mt-3 text-base leading-7 text-blue-100/70">{step.body}</p></div></div>
+    <div className="flex items-start gap-5"><div className={`grid size-14 shrink-0 place-items-center rounded-2xl ${accent === 'gold' ? 'bg-[#fcd116] text-[#172642]' : 'bg-[#10b981] text-white'}`}><Icon className="size-7" /></div><div><p className={`text-xs font-black uppercase tracking-[0.2em] ${accent === 'gold' ? 'text-[#fcd116]' : 'text-emerald-300'}`}>Step {index + 1}</p><h3 className="mt-2 text-xl font-black text-white sm:text-2xl">{step.title}</h3><p className="mt-3 text-base leading-7 text-blue-100/70">{step.body}</p>{'href' in step && step.href ? <Link href={step.href} className="mt-4 inline-flex text-sm font-black text-[#fcd116] underline underline-offset-4">Start verification</Link> : null}</div></div>
   </article>
 }
 

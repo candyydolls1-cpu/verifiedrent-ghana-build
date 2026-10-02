@@ -9,7 +9,7 @@ export function AdminDashboard({ adminId, applications, reports, listings, audit
   async function review(application: any, status: 'approved' | 'rejected') {
     const reason = status === 'rejected' ? window.prompt('Reason for rejection')?.trim() || 'Your verification application was rejected.' : ''
     setNotice('Saving review…')
-    const { error } = await supabase.from('verification_applications').update({ status, reviewed_at: new Date().toISOString() }).eq('id', application.id)
+    const { error } = await supabase.from('verification_applications').update({ status, reviewed_at: new Date().toISOString(), ...(status === 'rejected' ? { rejection_reason: reason } : { rejection_reason: null }) }).eq('id', application.id)
     if (!error && status === 'approved') {
       await supabase.from('landlord_profiles').update({ verification_status: 'approved' }).eq('user_id', application.landlord_id)
       await supabase.from('properties').update({ is_verified_landlord: true }).eq('landlord_id', application.landlord_id)
