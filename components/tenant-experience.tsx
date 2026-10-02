@@ -23,6 +23,7 @@ type Property = {
   property_images?: { image_url: string; is_primary: boolean | null }[]
   regions?: { name: string } | null
   cities?: { name: string } | null
+  landlord_profiles?: { phone: string | null; preferred_contact: string | null; email: string | null } | null
 }
 
 type Lookup = { id: string; name: string }
