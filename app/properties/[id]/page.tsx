@@ -1,13 +1,4 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PropertyDetail } from '@/components/property-detail'
-
-export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth')
-  const { data: property } = await supabase.from('properties').select('id,title,description,property_type,neighborhood,approximate_location,regions(name),cities(name),rent_amount,rent_currency,rent_frequency,bedrooms,bathrooms,landlord_id,is_verified_landlord,property_images(image_url,is_primary),property_amenities(amenity),landlord_profiles!properties_landlord_id_fkey(full_legal_name,profile_photo_url,verification_status)').eq('id', id).eq('status', 'published').maybeSingle()
-  if (!property) notFound()
-  return <PropertyDetail property={property} userId={user.id} />
-}
+export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); const { data: property } = await supabase.from('properties').select('id,title,description,price,location,property_type,landlord_id,property_images(image_url,is_cover),regions(name),districts(name,capital_city)').eq('id', id).eq('status', 'published').maybeSingle(); if (!property) notFound(); const [{ data: reviews }, { data: likes }] = await Promise.all([supabase.from('reviews').select('id,rating,comment,user_id,profiles(full_name)').eq('property_id', id).order('created_at', { ascending: false }), supabase.from('property_likes').select('id,user_id').eq('property_id', id)]); return <PropertyDetail property={property} reviews={reviews ?? []} likes={likes ?? []} userId={user?.id ?? null} /> }
