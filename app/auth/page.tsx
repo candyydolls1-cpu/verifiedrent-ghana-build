@@ -70,6 +70,16 @@ export default function AuthPage() {
       setMessage('Please confirm your email before signing in.')
       return
     }
+
+    const profileName = String(data.user.user_metadata?.full_name ?? '').trim()
+    await supabase.from('profiles').upsert({
+      id: data.user.id,
+      email: data.user.email,
+      full_name: profileName || null,
+      display_name: profileName ? profileName.split(/\s+/)[0] : null,
+      role: data.user.user_metadata?.role === 'landlord' ? 'landlord' : 'tenant',
+    }, { onConflict: 'id' })
+
     router.replace('/dashboard')
     router.refresh()
   }

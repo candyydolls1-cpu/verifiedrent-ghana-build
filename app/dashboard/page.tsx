@@ -10,9 +10,11 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
   const { data: profile } = await supabase.from('profiles').select('full_name,display_name,email,role').eq('id', user.id).maybeSingle()
-  if (profile?.role === 'tenant') {
-    const profileName = profile.display_name?.trim() || profile.full_name?.trim() || ''
-    const firstName = profileName.split(/\s+/)[0] || 'there'
+  const metadataName = String(user.user_metadata?.full_name ?? '').trim()
+  const profileName = profile?.display_name?.trim() || profile?.full_name?.trim() || metadataName
+  if (profile?.role === 'tenant' || user.user_metadata?.role === 'tenant') {
+    const tenantFirstName = profileName.split(/\s+/)[0] || 'there'
+    const firstName = tenantFirstName
     const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
     const [{ data: properties }, { data: regions }, { data: cities }] = await Promise.all([
