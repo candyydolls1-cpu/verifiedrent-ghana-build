@@ -25,7 +25,12 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const error = new URLSearchParams(window.location.search).get('error')
+    const params = new URLSearchParams(window.location.search)
+    const requestedMode = params.get('mode')
+    const requestedRole = params.get('role')
+    if (requestedMode === 'signup') setMode('signup')
+    if (requestedRole === 'landlord') setRole('landlord')
+    const error = params.get('error')
     if (error === 'confirmation_failed') setMessage('That confirmation link is invalid or has expired. Request a new confirmation email.')
     if (error === 'missing_confirmation_code') setMessage('That confirmation link is incomplete. Request a new confirmation email.')
   }, [])
@@ -76,7 +81,7 @@ export default function AuthPage() {
         role,
       }, { onConflict: 'id' })
 
-      router.replace('/dashboard')
+      router.replace(role === 'landlord' ? '/list-property?step=listing' : '/dashboard')
       router.refresh()
       return
     }
