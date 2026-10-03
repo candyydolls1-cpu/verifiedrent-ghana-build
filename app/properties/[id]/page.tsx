@@ -10,7 +10,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   const supabase = await createClient()
   const { data: property, error } = await supabase
     .from('properties')
-    .select('id,title,description,rent_amount,bedrooms,bathrooms,furnishing_status,availability,property_type,neighborhood,landlord_id,is_verified_landlord,property_images(image_url,is_primary,display_order),regions(name),districts(name,capital_city)')
+    .select('id,title,description,rent_amount,bedrooms,bathrooms,furnishing_status,property_type,neighborhood,landlord_id,is_verified_landlord,property_images(image_url,is_primary,display_order)')
     .eq('id', id)
     .eq('status', 'published')
     .maybeSingle()

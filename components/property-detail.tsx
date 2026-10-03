@@ -13,12 +13,9 @@ type Property = {
   bedrooms: number | null
   bathrooms: number | null
   furnishing_status: string | null
-  availability: string | null
   property_type: string
   neighborhood: string | null
   is_verified_landlord: boolean | null
-  regions?: { name: string } | null
-  districts?: { name: string; capital_city: string | null } | null
   property_images?: ImageRecord[]
 }
 type Landlord = { full_name: string | null }
@@ -45,9 +42,9 @@ export function PropertyDetail({ property, landlord }: { property: Property; lan
           <div className="p-5 sm:p-8">
             <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700">{property.property_type}</span>{property.is_verified_landlord && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-sm font-bold text-white"><ShieldCheck size={16} /> Verified Landlord</span>}</div>
             <h1 className="mt-4 text-3xl font-black sm:text-5xl">{property.title}</h1>
-            <p className="mt-2 text-slate-500">{[property.neighborhood, property.districts?.name, property.regions?.name].filter(Boolean).join(', ')}</p>
+            {property.neighborhood && <p className="mt-2 text-slate-500">{property.neighborhood}</p>}
             <p className="mt-5 text-3xl font-black text-emerald-700">GHS {Number(property.rent_amount).toLocaleString()}</p>
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">{[['Bedrooms', property.bedrooms ?? '—'], ['Bathrooms', property.bathrooms ?? '—'], ['Furnishing', property.furnishing_status ?? '—'], ['Availability', property.availability ?? '—']].map(([label, value]) => <div key={label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{label}</p><p className="mt-1 font-black">{value}</p></div>)}</div>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">{[['Bedrooms', property.bedrooms ?? '—'], ['Bathrooms', property.bathrooms ?? '—'], ['Furnishing', property.furnishing_status ?? '—'], ['Availability', 'Published']].map(([label, value]) => <div key={label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{label}</p><p className="mt-1 font-black">{value}</p></div>)}</div>
             <div className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50 p-5"><p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Posted by</p><p className="mt-1 text-xl font-black">{landlordName}</p>{property.is_verified_landlord && <p className="mt-1 text-sm font-semibold text-emerald-700">Verified Landlord</p>}</div>
             <div className="mt-8 border-t border-slate-100 pt-6"><h2 className="text-xl font-black">About this property</h2><p className="mt-3 whitespace-pre-wrap leading-7 text-slate-600">{property.description || 'No description provided.'}</p></div>
           </div>
