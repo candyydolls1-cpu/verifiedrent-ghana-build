@@ -22,17 +22,18 @@ export default function ListPropertyPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); router.replace('/auth?mode=signup&role=landlord'); return }
+    const authUserId = user.id
     const selectedPhotos = photos.filter((photo): photo is File => Boolean(photo))
     if (!form.rent || Number(form.rent) <= 0 || selectedPhotos.length < 1) { setError('Add a monthly rent and at least one photo to publish.'); setLoading(false); return }
     const { data: region } = await supabase.from('regions').select('id').eq('name', form.region).maybeSingle()
     if (!region) { setError('Please choose a valid Ghana region.'); setLoading(false); return }
-    const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: user.id, email: user.email, phone: form.phone.trim() || null, whatsapp: form.whatsapp.trim() || null, preferred_contact: form.whatsapp.trim() ? 'whatsapp' : form.phone.trim() ? 'phone' : null }, { onConflict: 'user_id' })
+    const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: authUserId, email: user.email, phone: form.phone.trim() || null, whatsapp: form.whatsapp.trim() || null, preferred_contact: form.whatsapp.trim() ? 'whatsapp' : form.phone.trim() ? 'phone' : null }, { onConflict: 'user_id' })
     if (contactError) { setError('We could not save your contact details. Please try again.'); setLoading(false); return }
-    const { data: property, error: propertyError } = await supabase.from('properties').insert({ landlord_id: user.id, title: form.title.trim(), property_type: form.type, region_id: region.id, neighborhood: form.neighborhood.trim(), rent_amount: Number(form.rent), bedrooms: Number(form.bedrooms), bathrooms: Number(form.bathrooms), is_furnished: form.furnished === 'Furnished', amenities: form.amenities.trim() || null, availability: form.availability, status: 'published', is_verified_landlord: false }).select('id').single()
+    const { data: property, error: propertyError } = await supabase.from('properties').insert({ landlord_id: authUserId, title: form.title.trim(), property_type: form.type, region_id: region.id, neighborhood: form.neighborhood.trim(), rent_amount: Number(form.rent), bedrooms: Number(form.bedrooms), bathrooms: Number(form.bathrooms), is_furnished: form.furnished === 'Furnished', amenities: form.amenities.trim() || null, availability: form.availability, status: 'published', is_verified_landlord: false }).select('id').single()
     if (propertyError || !property) { setError(propertyError?.message ?? 'We could not publish your property.'); setLoading(false); return }
     for (const [index, photo] of selectedPhotos.entries()) {
       const displayOrder = index + 1
-      const path = `${user.id}/${property.id}/${crypto.randomUUID()}-${photo.name}`
+      const path = `${authUserId}/${property.id}/${crypto.randomUUID()}-${photo.name}`
       const upload = await supabase.storage.from('property-images').upload(path, photo, { contentType: photo.type, upsert: false })
       if (upload.error) { setError(upload.error.message); setLoading(false); return }
       const imageUrl = supabase.storage.from('property-images').getPublicUrl(path).data.publicUrl
