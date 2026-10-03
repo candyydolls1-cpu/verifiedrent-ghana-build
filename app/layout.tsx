@@ -51,6 +51,9 @@ export default function RootLayout({
         <BackgroundLogo />
         <main className="relative z-10">{children}</main>
         {process.env.NODE_ENV === 'production' && <Analytics />}
+        <a href="https://submitby.ai/project/cf5fc2d3-1ceb-4b1d-8072-55e0cc56d7c7" target="_blank" rel="noopener noreferrer">
+          <img src="https://submitby.ai/badge/cf5fc2d3-1ceb-4b1d-8072-55e0cc56d7c7.svg" alt="Verified on SubmitBy.ai" style={{ width: '120px', height: 'auto' }} />
+        </a>
       </body>
     </html>
   )
