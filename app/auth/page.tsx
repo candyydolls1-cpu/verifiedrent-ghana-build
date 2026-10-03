@@ -23,6 +23,7 @@ export default function AuthPage() {
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [confirmationPending, setConfirmationPending] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -55,27 +56,20 @@ export default function AuthPage() {
         return
       }
 
-      let session = data.session
-      let user = data.user
-
-      if (!session) {
-        const fallback = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        })
-        session = fallback.data.session
-        user = fallback.data.user
-        if (fallback.error || !session || !user) {
-          setLoading(false)
-          setMessage('We could not complete account setup. Please try again.')
-          return
-        }
+      if (!data.session) {
+        setLoading(false)
+        setConfirmationPending(true)
+        return
       }
 
       setLoading(false)
+      if (!data.user) {
+        setMessage('We could not complete account setup. Please try again.')
+        return
+      }
       await supabase.from('profiles').upsert({
-        id: user.id,
-        email: user.email,
+        id: data.user.id,
+        email: data.user.email,
         full_name: name.trim() || null,
         display_name: name.trim() ? name.trim().split(/\s+/)[0] : null,
         role,
@@ -119,6 +113,17 @@ export default function AuthPage() {
     router.replace('/auth?mode=signup')
     router.refresh()
   }
+
+  if (confirmationPending) return (
+    <main className="grid min-h-screen place-items-center bg-[#f6f9fc] px-6 py-10 text-[#1B2A4A]">
+      <section className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-xl lg:p-12">
+        <div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-100 text-3xl text-emerald-700">✓</div>
+        <h1 className="mt-6 text-3xl font-bold">Check your email</h1>
+        <p className="mt-4 text-slate-600">We&apos;ve sent a confirmation to <strong className="text-[#1B2A4A]">{email}</strong>. Click the link to verify your account.</p>
+        <button type="button" onClick={() => { setConfirmationPending(false); setMode('signin'); setMessage('') }} className="mt-8 min-h-12 rounded-xl border border-slate-200 px-5 font-semibold text-[#1B2A4A] hover:border-emerald-500">Back to sign in</button>
+      </section>
+    </main>
+  )
 
   return (
     <main className="min-h-screen bg-[#f6f9fc] px-6 py-10 text-[#1B2A4A]">
