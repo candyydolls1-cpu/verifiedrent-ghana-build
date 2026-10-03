@@ -97,16 +97,26 @@ export default function AuthPage() {
       return
     }
 
-    const profileName = String(data.user.user_metadata?.full_name ?? '').trim()
-    await supabase.from('profiles').upsert({
-      id: data.user.id,
-      email: data.user.email,
-      full_name: profileName || null,
-      display_name: profileName ? profileName.split(/\s+/)[0] : null,
-      role: data.user.user_metadata?.role === 'landlord' ? 'landlord' : 'tenant',
-    }, { onConflict: 'id' })
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .maybeSingle()
 
-    router.replace('/dashboard')
+    setLoading(false)
+    if (profileError || !profile?.role) {
+      router.replace('/auth?mode=signup')
+      router.refresh()
+      return
+    }
+
+    if (profile.role === 'landlord' || profile.role === 'tenant') {
+      router.replace('/dashboard')
+      router.refresh()
+      return
+    }
+
+    router.replace('/auth?mode=signup')
     router.refresh()
   }
 
