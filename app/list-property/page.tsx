@@ -42,7 +42,7 @@ export default function ListPropertyPage() {
       const { error: imageError } = await supabase.from('property_images').upsert({ property_id: property.id, image_url: imageUrl, is_primary: displayOrder === 1, display_order: displayOrder }, { onConflict: 'property_id,display_order' })
       if (imageError) { setError(imageError.message); setLoading(false); return }
     }
-    router.push(`/list-property?published=true&propertyId=${property.id}`)
+    router.push(`/property/${property.id}`)
   }
 
   const published = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('published') === 'true'
