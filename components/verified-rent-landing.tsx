@@ -55,7 +55,7 @@ export function VerifiedRentLanding({ regions: availableRegions, featuredPropert
       <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 backdrop-blur vr-header-enter">
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-12">
           <a href="#top" className="flex items-center gap-3" aria-label="VerifiedRent Ghana home">
-            <span className="flex flex-col items-center gap-1"><img src="/verifiedrent-logo.png" alt="VerifiedRent Ghana shield logo" className="size-10 object-contain" /><span aria-label="Ghana flag" className="flex h-1.5 w-10 overflow-hidden rounded-full shadow-sm"><span className="flex-1 bg-[#ce1126]" /><span className="flex-1 bg-[#fcd116]" /><span className="flex-1 bg-[#006b3f]" /></span></span>
+            <span className="flex flex-col items-center gap-1"><img src="/verifiedrent-logo.webp" alt="VerifiedRent Ghana shield logo" width={40} height={40} className="size-10 object-contain" /><span aria-label="Ghana flag" className="flex h-1.5 w-10 overflow-hidden rounded-full shadow-sm"><span className="flex-1 bg-[#ce1126]" /><span className="flex-1 bg-[#fcd116]" /><span className="flex-1 bg-[#006b3f]" /></span></span>
             <span className="text-lg font-extrabold tracking-[-0.04em] sm:text-xl">VerifiedRent Ghana</span>
           </a>
           <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-600 md:flex" aria-label="Main navigation">

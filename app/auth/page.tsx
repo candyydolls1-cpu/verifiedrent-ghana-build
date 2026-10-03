@@ -130,7 +130,7 @@ export default function AuthPage() {
       <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl lg:grid-cols-2">
         <section className="bg-[#1B2A4A] p-10 text-white lg:p-14">
           <div className="flex items-center gap-3">
-            <img src="/verifiedrent-logo.png" alt="VerifiedRent Ghana logo" className="size-12 rounded-2xl bg-white p-2 object-contain" />
+            <img loading="lazy" src="/verifiedrent-logo.webp" alt="VerifiedRent Ghana logo" className="size-12 rounded-2xl bg-white p-2 object-contain" />
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">VerifiedRent Ghana</p>
           </div>
           <h1 className="mt-20 text-4xl font-bold leading-tight">Rent with more confidence.</h1>
@@ -138,7 +138,7 @@ export default function AuthPage() {
         </section>
         <section className="p-8 lg:p-14">
           <div className="mb-8 flex items-center gap-3">
-            <img src="/verifiedrent-logo.png" alt="VerifiedRent Ghana logo" className="size-10 rounded-xl bg-emerald-50 p-2 object-contain" />
+            <img loading="lazy" src="/verifiedrent-logo.webp" alt="VerifiedRent Ghana logo" className="size-10 rounded-xl bg-emerald-50 p-2 object-contain" />
             <span className="font-bold tracking-tight text-[#1B2A4A]">VerifiedRent Ghana</span>
           </div>
           <div className="mb-8 flex gap-2 rounded-xl bg-slate-100 p-1">
