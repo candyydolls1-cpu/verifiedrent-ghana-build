@@ -140,6 +140,7 @@ export default function AuthPage() {
             {message && <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p>}
             <button disabled={loading} className="rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">{loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}</button>
           </form>
+          {mode === 'signin' && <p className="mt-5 text-center text-sm text-slate-500">Don&apos;t have an account? <a href="/auth?mode=signup" className="font-semibold text-emerald-700 underline-offset-4 hover:underline">Create one</a></p>}
         </section>
       </div>
     </main>
