@@ -10,7 +10,7 @@ export default async function PropertiesPage({ searchParams }: { searchParams: P
   const { data: regions } = await supabase.from('regions').select('id,name').order('name')
   const region = regions?.find((item) => item.id === params.region || item.name.toLowerCase() === params.region?.toLowerCase())
   const regionId = region?.id ?? params.region
-  let query = supabase.from('properties').select('id,title,description,rent_amount,property_type,region_id,city_id,neighborhood,property_images(image_url,is_primary,display_order)').eq('status', 'published').order('created_at', { ascending: false })
+  let query = supabase.from('properties').select('id,title,description,rent_amount,bedrooms,is_furnished,furnishing_status,property_type,region_id,city_id,neighborhood,property_images(image_url,is_primary,display_order)').eq('status', 'published').order('created_at', { ascending: false })
   if (params.city) query = query.eq('city_id', params.city)
   else if (regionId) query = query.eq('region_id', regionId)
   if (params.district) query = query.eq('district_id', Number(params.district))
@@ -18,5 +18,7 @@ export default async function PropertiesPage({ searchParams }: { searchParams: P
   query = query.order('display_order', { foreignTable: 'property_images', ascending: true })
   const { data: properties, error } = await query
   const allRegions = regions?.length ? regions : ['Ahafo', 'Ashanti', 'Bono', 'Bono East', 'Central', 'Eastern', 'Greater Accra', 'North East', 'Northern', 'Oti', 'Savannah', 'Upper East', 'Upper West', 'Volta', 'Western', 'Western North'].map((name) => ({ id: name, name }))
-  return <PropertyResults properties={properties ?? []} regions={allRegions} region={region?.name ?? ''} type={params.type ?? ''} district={params.district ?? ''} />
+  const regionNames = new Map(allRegions.map((item) => [item.id, item.name]))
+  const listings = (properties ?? []).map((property) => ({ ...property, region_name: regionNames.get(property.region_id) ?? 'Ghana' }))
+  return <PropertyResults properties={listings} regions={allRegions} region={region?.name ?? ''} type={params.type ?? ''} district={params.district ?? ''} />
 }
