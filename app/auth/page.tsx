@@ -80,38 +80,43 @@ export default function AuthPage() {
       return
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-    setLoading(false)
-    if (error) {
-      setMessage(messageForAuthError(error.message))
-      return
-    }
-    if (!data.session) {
-      setMessage('Sign-in completed without a session. Please try again.')
-      return
-    }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) {
+        setMessage(error.message)
+        setLoading(false)
+        return
+      }
+      if (!data.user || !data.session) {
+        setMessage('Sign-in completed without a session. Please try again.')
+        setLoading(false)
+        return
+      }
 
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .maybeSingle()
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle()
 
-    setLoading(false)
-    if (profileError || !profile?.role) {
-      router.replace('/auth?mode=signup')
+      if (profileError) {
+        setMessage(profileError.message)
+        setLoading(false)
+        return
+      }
+      if (!profile?.role) {
+        setMessage('No account role was found. Please create your account again.')
+        setLoading(false)
+        return
+      }
+
+      setLoading(false)
+      router.replace(profile.role === 'tenant' ? '/tenant' : profile.role === 'landlord' ? '/dashboard' : '/auth?mode=signup')
       router.refresh()
-      return
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Sign-in failed. Please try again.')
+      setLoading(false)
     }
-
-    if (profile.role === 'landlord' || profile.role === 'tenant') {
-      router.replace(profile.role === 'tenant' ? '/tenant' : '/dashboard')
-      router.refresh()
-      return
-    }
-
-    router.replace('/auth?mode=signup')
-    router.refresh()
   }
 
   if (confirmationPending) return (
