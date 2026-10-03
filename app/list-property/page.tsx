@@ -29,7 +29,9 @@ export default function ListPropertyPage() {
     if (!region) { setError('Please choose a valid Ghana region.'); setLoading(false); return }
     const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: authUserId, email: user.email, phone: form.phone.trim() || null, whatsapp: form.whatsapp.trim() || null, preferred_contact: form.whatsapp.trim() ? 'whatsapp' : form.phone.trim() ? 'phone' : null }, { onConflict: 'user_id' })
     if (contactError) { setError('We could not save your contact details. Please try again.'); setLoading(false); return }
-    const { data: property, error: propertyError } = await supabase.from('properties').insert({ landlord_id: authUserId, title: form.title.trim(), property_type: form.type, region_id: region.id, neighborhood: form.neighborhood.trim(), rent_amount: Number(form.rent), bedrooms: Number(form.bedrooms), bathrooms: Number(form.bathrooms), is_furnished: form.furnished === 'Furnished', amenities: form.amenities.trim() || null, availability: form.availability, status: 'published', is_verified_landlord: false }).select('id').single()
+    const propertyPayload = { landlord_id: authUserId, title: form.title.trim(), property_type: form.type, region_id: region.id, neighborhood: form.neighborhood.trim(), rent_amount: Number(form.rent), bedrooms: Number(form.bedrooms), bathrooms: Number(form.bathrooms), is_furnished: form.furnished === 'Furnished', amenities: form.amenities.trim() || null, availability: form.availability, status: 'published', is_verified_landlord: false }
+    const { data: existingProperty } = await supabase.from('properties').select('id').eq('landlord_id', authUserId).eq('title', form.title.trim()).maybeSingle()
+    const { data: property, error: propertyError } = await supabase.from('properties').upsert(existingProperty ? { id: existingProperty.id, ...propertyPayload } : propertyPayload, { onConflict: 'id' }).select('id').single()
     if (propertyError || !property) { setError(propertyError?.message ?? 'We could not publish your property.'); setLoading(false); return }
     for (const [index, photo] of selectedPhotos.entries()) {
       const displayOrder = index + 1
@@ -37,7 +39,7 @@ export default function ListPropertyPage() {
       const upload = await supabase.storage.from('property-images').upload(path, photo, { contentType: photo.type, upsert: false })
       if (upload.error) { setError(upload.error.message); setLoading(false); return }
       const imageUrl = supabase.storage.from('property-images').getPublicUrl(path).data.publicUrl
-      const { error: imageError } = await supabase.from('property_images').insert({ property_id: property.id, image_url: imageUrl, is_primary: displayOrder === 1, display_order: displayOrder })
+      const { error: imageError } = await supabase.from('property_images').upsert({ property_id: property.id, image_url: imageUrl, is_primary: displayOrder === 1, display_order: displayOrder }, { onConflict: 'property_id,display_order' })
       if (imageError) { setError(imageError.message); setLoading(false); return }
     }
     router.push(`/list-property?published=true&propertyId=${property.id}`)
