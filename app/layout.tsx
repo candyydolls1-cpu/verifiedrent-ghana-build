@@ -4,8 +4,8 @@ import { BackgroundLogo } from '@/components/background-logo'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VerifiedRent Ghana | Find home with confidence',
-  description: 'Discover trusted, verified rental properties across Ghana.',
+  title: 'Verified Rentals in Ghana | VerifiedRent Ghana',
+  description: 'Browse homes for rent across Ghana and identify verified landlords and properties. Explore rental options by region with VerifiedRent Ghana.',
   verification: {
     google: 'bmJa7dLCmToyxdPooUvi0Qe0vC0o5jj01UDupOjlUew',
   },
