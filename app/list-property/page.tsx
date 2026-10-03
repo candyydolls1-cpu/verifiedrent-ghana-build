@@ -22,12 +22,13 @@ export default function ListPropertyPage() {
     event.preventDefault(); setError(''); setLoading(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.replace('/auth?mode=signup&role=landlord'); return }
+    if (!user) { setLoading(false); router.replace('/auth?mode=signup&role=landlord'); return }
+    const userId = user.id
     const region = (await supabase.from('regions').select('id').eq('name', form.region).maybeSingle()).data
     if (!region) { setError('Please choose a valid Ghana region.'); setLoading(false); return }
     const selectedPhotos = photos.filter((photo): photo is File => Boolean(photo))
     if (selectedPhotos.length !== 3) { setError('Please add all three photos before publishing.'); setLoading(false); return }
-    const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: user.id, email: user.email, phone: form.phone.trim() || null, whatsapp: form.whatsapp.trim() || null, preferred_contact: form.whatsapp.trim() ? 'whatsapp' : form.phone.trim() ? 'phone' : null }, { onConflict: 'user_id' })
+    const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: userId, email: user.email, phone: form.phone.trim() || null, whatsapp: form.whatsapp.trim() || null, preferred_contact: form.whatsapp.trim() ? 'whatsapp' : form.phone.trim() ? 'phone' : null }, { onConflict: 'user_id' })
     if (contactError) { setError('We could not save your contact details. Please try again.'); setLoading(false); return }
     const { data: property, error: propertyError } = await supabase.from('properties').insert({ landlord_id: user.id, title: form.title.trim(), property_type: form.type, region_id: region.id, neighborhood: form.neighborhood.trim(), rent_amount: Number(form.rent), bedrooms: Number(form.bedrooms), is_furnished: form.furnished === 'Yes', status: 'published', is_verified_landlord: false }).select('id').single()
     if (propertyError || !property) { setError(propertyError?.message ?? 'We could not publish your property.'); setLoading(false); return }
