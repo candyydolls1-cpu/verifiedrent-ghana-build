@@ -1,6 +1,9 @@
 import ExploreFeed from '@/components/explore-feed'
 import { createClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function ExplorePage() {
   const supabase = await createClient()
   const { data: properties, error } = await supabase

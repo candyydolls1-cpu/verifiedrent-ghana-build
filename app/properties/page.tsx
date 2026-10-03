@@ -1,4 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { PropertyResults } from '@/components/property-results'
 
 export default async function PropertiesPage({ searchParams }: { searchParams: Promise<{ region?: string; city?: string; district?: string; type?: string }> }) {
