@@ -17,5 +17,6 @@ export default async function PropertiesPage({ searchParams }: { searchParams: P
   if (params.type) query = query.eq('property_type', params.type)
   query = query.order('display_order', { foreignTable: 'property_images', ascending: true })
   const { data: properties, error } = await query
-  return <PropertyResults properties={properties ?? []} region={region?.name ?? ''} type={params.type ?? ''} district={params.district ?? ''} />
+  const allRegions = regions?.length ? regions : ['Ahafo', 'Ashanti', 'Bono', 'Bono East', 'Central', 'Eastern', 'Greater Accra', 'North East', 'Northern', 'Oti', 'Savannah', 'Upper East', 'Upper West', 'Volta', 'Western', 'Western North'].map((name) => ({ id: name, name }))
+  return <PropertyResults properties={properties ?? []} regions={allRegions} region={region?.name ?? ''} type={params.type ?? ''} district={params.district ?? ''} />
 }
