@@ -105,7 +105,7 @@ export default function AuthPage() {
     }
 
     if (profile.role === 'landlord' || profile.role === 'tenant') {
-      router.replace('/dashboard')
+      router.replace(profile.role === 'tenant' ? '/tenant' : '/dashboard')
       router.refresh()
       return
     }

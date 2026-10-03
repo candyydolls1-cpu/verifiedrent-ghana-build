@@ -13,6 +13,7 @@ export default async function DashboardPage() {
   const metadataName = String(user.user_metadata?.full_name ?? '').trim()
   const profileName = profile?.full_name?.trim() || metadataName
   if (profile?.role === 'tenant' || user.user_metadata?.role === 'tenant') {
+    redirect('/tenant')
     const tenantFirstName = profileName.split(/\s+/)[0] || 'there'
     const firstName = tenantFirstName
     const hour = new Date().getHours()
