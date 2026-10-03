@@ -1,7 +1,58 @@
 'use client'
+
+import Link from 'next/link'
 import { useState } from 'react'
-import { Heart, Star } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-type Review = { id: number; rating: number; comment: string | null; profiles?: { full_name: string | null } | null }
-type Property = { id: string; title: string; description: string | null; rent_amount: number; neighborhood: string | null; property_type: string; landlord_id: string; regions?: { name: string } | null; districts?: { name: string; capital_city: string | null } | null; property_images?: { image_url?: string | null; url?: string | null; path?: string | null; storage_path?: string | null; is_primary?: boolean | null; is_cover?: boolean | null }[] }
-export function PropertyDetail({ property, reviews, likes, userId }: { property: Property; reviews: Review[]; likes: { id: number; user_id: string }[]; userId: string | null }) { const supabase = createClient(); const [liked, setLiked] = useState(Boolean(userId && likes.some((item) => item.user_id === userId))); const [likeCount, setLikeCount] = useState(likes.length); const [notice, setNotice] = useState(''); const [inquiry, setInquiry] = useState({ name: '', phone: '', message: '' }); const [review, setReview] = useState({ rating: 5, comment: '' }); const toggleLike = async () => { if (!userId) { setNotice('Sign in to like this property.'); return } if (liked) { await supabase.from('property_likes').delete().eq('property_id', property.id).eq('user_id', userId); setLiked(false); setLikeCount((count) => count - 1) } else { await supabase.from('property_likes').insert({ property_id: property.id, user_id: userId }); setLiked(true); setLikeCount((count) => count + 1) } }; const sendInquiry = async (event: React.FormEvent) => { event.preventDefault(); const { error } = await supabase.from('inquiries').insert({ property_id: property.id, name: inquiry.name, phone: inquiry.phone, message: inquiry.message, email: '' }); setNotice(error ? 'Could not send inquiry.' : 'Your inquiry was sent to the landlord.'); if (!error) setInquiry({ name: '', phone: '', message: '' }) }; const sendReview = async (event: React.FormEvent) => { event.preventDefault(); if (!userId) { setNotice('Sign in to leave a review.'); return } const { error } = await supabase.from('reviews').insert({ property_id: property.id, user_id: userId, rating: review.rating, comment: review.comment }); setNotice(error ? 'Could not save your review.' : 'Review submitted.'); if (!error) setReview({ rating: 5, comment: '' }) }; const images = (property.property_images ?? []).map((image) => { const rawImage = image.image_url ?? image.url ?? image.path ?? image.storage_path ?? ''; return { ...image, image_url: rawImage.startsWith('http') ? rawImage : rawImage ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/property-images/${rawImage.replace(/^\/+/, '')}` : '' } }).filter((image) => image.image_url); return <main className="min-h-screen bg-[#f7fbff] px-5 py-10 text-[#10233d] sm:px-8"><div className="mx-auto max-w-6xl"><div className="grid gap-3 md:grid-cols-2">{images.map((image) => <img key={image.image_url} src={image.image_url} alt={property.title} className="aspect-[4/3] w-full rounded-2xl object-cover" />)}</div><section className="mt-8 rounded-3xl bg-white p-6 shadow-sm"><span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700">{property.property_type}</span><h1 className="mt-4 text-4xl font-black">{property.title}</h1><p className="mt-2 text-slate-500">{property.location || property.districts?.name}, {property.regions?.name}</p><p className="mt-5 text-3xl font-black text-emerald-700">GHS {Number(property.price).toLocaleString()}</p><p className="mt-5 leading-7 text-slate-600">{property.description}</p><button onClick={toggleLike} className="mt-6 inline-flex items-center gap-2 rounded-xl border px-4 py-3 font-bold"><Heart className={liked ? 'fill-rose-500 text-rose-500' : ''} /> {likeCount} likes</button></section><div className="mt-6 grid gap-6 lg:grid-cols-2"><form onSubmit={sendInquiry} className="rounded-3xl bg-white p-6 shadow-sm"><h2 className="text-2xl font-black">Ask the landlord</h2><div className="mt-4 grid gap-3"><input required placeholder="Your name" value={inquiry.name} onChange={(e) => setInquiry({ ...inquiry, name: e.target.value })} className="rounded-xl border p-3" /><input required placeholder="Phone number" value={inquiry.phone} onChange={(e) => setInquiry({ ...inquiry, phone: e.target.value })} className="rounded-xl border p-3" /><textarea required placeholder="Message" value={inquiry.message} onChange={(e) => setInquiry({ ...inquiry, message: e.target.value })} className="min-h-28 rounded-xl border p-3" /><button className="rounded-xl bg-[#10233d] px-4 py-3 font-bold text-white">Send inquiry</button></div></form><section className="rounded-3xl bg-white p-6 shadow-sm"><h2 className="text-2xl font-black">Reviews</h2>{reviews.map((item) => <div key={item.id} className="mt-4 border-b pb-4"><div className="flex gap-1 text-amber-500">{Array.from({ length: 5 }, (_, index) => <Star key={index} className={index < item.rating ? 'fill-current' : ''} size={16} />)}</div><p className="mt-1 font-bold">{item.profiles?.full_name || 'Tenant'}</p><p className="mt-1 text-slate-600">{item.comment}</p></div>)}<form onSubmit={sendReview} className="mt-6 grid gap-3"><select value={review.rating} onChange={(e) => setReview({ ...review, rating: Number(e.target.value) })} className="rounded-xl border p-3">{[5, 4, 3, 2, 1].map((value) => <option key={value} value={value}>{value} stars</option>)}</select><textarea placeholder="Share your experience" value={review.comment} onChange={(e) => setReview({ ...review, comment: e.target.value })} className="min-h-24 rounded-xl border p-3" /><button className="rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white">Leave review</button></form></section></div>{notice && <p className="mt-5 rounded-xl bg-emerald-50 p-4 font-semibold text-emerald-800">{notice}</p>}</div></main> }
+import { ChevronLeft, ChevronRight, Heart, ShieldCheck } from 'lucide-react'
+
+type ImageRecord = { image_url: string; is_primary: boolean | null; display_order: number | null }
+type Property = {
+  id: string
+  title: string
+  description: string | null
+  rent_amount: number
+  bedrooms: number | null
+  bathrooms: number | null
+  furnishing_status: string | null
+  availability: string | null
+  property_type: string
+  neighborhood: string | null
+  is_verified_landlord: boolean | null
+  regions?: { name: string } | null
+  districts?: { name: string; capital_city: string | null } | null
+  property_images?: ImageRecord[]
+}
+type Landlord = { full_name: string | null }
+
+export function PropertyDetail({ property, landlord }: { property: Property; landlord: Landlord | null }) {
+  const images = [...(property.property_images ?? [])].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || (a.display_order ?? 0) - (b.display_order ?? 0))
+  const [activeImage, setActiveImage] = useState(0)
+  const currentImage = images[activeImage]?.image_url
+  const landlordName = landlord?.full_name || 'VerifiedRent landlord'
+
+  return (
+    <main className="min-h-screen bg-[#f7fbff] px-4 py-6 text-[#10233d] sm:px-8">
+      <div className="mx-auto max-w-5xl">
+        <Link href="/properties" className="text-sm font-bold text-emerald-700">← Back to listings</Link>
+        <section className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="relative aspect-[4/3] bg-emerald-50 sm:aspect-[16/8]">
+            {currentImage ? <img src={currentImage} alt={`${property.title} photo ${activeImage + 1}`} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-emerald-700">No property photos available</div>}
+            {images.length > 1 && <>
+              <button type="button" aria-label="Previous photo" onClick={() => setActiveImage((index) => (index - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-800 shadow"><ChevronLeft /></button>
+              <button type="button" aria-label="Next photo" onClick={() => setActiveImage((index) => (index + 1) % images.length)} className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-800 shadow"><ChevronRight /></button>
+            </>}
+          </div>
+          {images.length > 1 && <div className="flex gap-2 overflow-x-auto p-3">{images.map((image, index) => <button type="button" key={`${image.image_url}-${index}`} aria-label={`View photo ${index + 1}`} onClick={() => setActiveImage(index)} className={`size-16 shrink-0 overflow-hidden rounded-xl border-2 ${activeImage === index ? 'border-emerald-600' : 'border-transparent'}`}><img src={image.image_url} alt="" className="h-full w-full object-cover" /></button>)}</div>}
+          <div className="p-5 sm:p-8">
+            <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700">{property.property_type}</span>{property.is_verified_landlord && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-sm font-bold text-white"><ShieldCheck size={16} /> Verified Landlord</span>}</div>
+            <h1 className="mt-4 text-3xl font-black sm:text-5xl">{property.title}</h1>
+            <p className="mt-2 text-slate-500">{[property.neighborhood, property.districts?.name, property.regions?.name].filter(Boolean).join(', ')}</p>
+            <p className="mt-5 text-3xl font-black text-emerald-700">GHS {Number(property.rent_amount).toLocaleString()}</p>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">{[['Bedrooms', property.bedrooms ?? '—'], ['Bathrooms', property.bathrooms ?? '—'], ['Furnishing', property.furnishing_status ?? '—'], ['Availability', property.availability ?? '—']].map(([label, value]) => <div key={label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase text-slate-500">{label}</p><p className="mt-1 font-black">{value}</p></div>)}</div>
+            <div className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50 p-5"><p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Posted by</p><p className="mt-1 text-xl font-black">{landlordName}</p>{property.is_verified_landlord && <p className="mt-1 text-sm font-semibold text-emerald-700">Verified Landlord</p>}</div>
+            <div className="mt-8 border-t border-slate-100 pt-6"><h2 className="text-xl font-black">About this property</h2><p className="mt-3 whitespace-pre-wrap leading-7 text-slate-600">{property.description || 'No description provided.'}</p></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  )
+}

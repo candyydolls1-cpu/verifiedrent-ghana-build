@@ -1,7 +1,21 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { PropertyDetail } from '@/components/property-detail'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-import { PropertyDetail } from '@/components/property-detail'
-export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); const { data: property } = await supabase.from('properties').select('id,title,description,rent_amount,neighborhood,property_type,landlord_id,property_images!inner(property_id,image_url,is_primary,display_order),regions(name),districts(name,capital_city)').eq('id', id).eq('status', 'published').eq('property_images.is_primary', true).order('display_order', { foreignTable: 'property_images', ascending: true }).maybeSingle(); if (!property) notFound(); const [{ data: reviews }, { data: likes }] = await Promise.all([supabase.from('reviews').select('id,rating,comment,user_id,profiles(full_name)').eq('property_id', id).order('created_at', { ascending: false }), supabase.from('property_likes').select('id,user_id').eq('property_id', id)]); return <PropertyDetail property={property} reviews={reviews ?? []} likes={likes ?? []} userId={user?.id ?? null} /> }
+
+export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: property, error } = await supabase
+    .from('properties')
+    .select('id,title,description,rent_amount,bedrooms,bathrooms,furnishing_status,availability,property_type,neighborhood,landlord_id,is_verified_landlord,property_images(image_url,is_primary,display_order),regions(name),districts(name,capital_city)')
+    .eq('id', id)
+    .eq('status', 'published')
+    .maybeSingle()
+
+  if (error || !property) notFound()
+  const { data: landlord } = await supabase.from('profiles').select('full_name').eq('id', property.landlord_id).maybeSingle()
+  return <PropertyDetail property={property} landlord={landlord} />
+}
