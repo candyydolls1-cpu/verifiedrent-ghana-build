@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ComponentProps } from 'react'
 import { Building2, ChevronDown, Check, Flower2, Home, Landmark, MapPin, Menu, Search, ShieldCheck, Tag, TowerControl, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { FeaturedProperties } from '@/components/featured-properties'
 
 const regionIcons = [Building2, Flower2, TowerControl, Landmark]
 
-export function VerifiedRentLanding({ regions: availableRegions }: { regions: { id: string; name: string }[] }) {
+export function VerifiedRentLanding({ regions: availableRegions, featuredProperties }: { regions: { id: string; name: string }[]; featuredProperties: ComponentProps<typeof FeaturedProperties>['properties'] }) {
   const regionsForDisplay = availableRegions
   const [menuOpen, setMenuOpen] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
@@ -72,6 +73,7 @@ export function VerifiedRentLanding({ regions: availableRegions }: { regions: { 
       </section>
 
       <section id="search" className="relative z-10 mx-auto -mt-8 max-w-6xl px-5 sm:-mt-12 sm:px-8 vr-search-enter"><div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-900/10 sm:p-8"><div className="mb-6 flex items-center gap-3"><span className="grid size-11 place-items-center rounded-full bg-emerald-50 text-[#10B981]"><Search className="size-5" /></span><div><h2 className="text-xl font-extrabold">Search properties</h2><p className="text-sm text-slate-500">Find a verified rental that feels like home.</p></div></div><div className="grid gap-4 md:grid-cols-3"><SelectField label="Location" value={location} onChange={setLocation} icon={MapPin} options={regionsForDisplay.map((region) => ({ label: region.name, value: region.id }))} /><SelectField label="Property type" value={type} onChange={setType} icon={Home} options={['Apartment', 'Single Room', 'Self-Contained', 'House', 'Compound House', 'Airbnb', 'Hotel', 'Guesthouse', 'Office Space', 'Land', 'Warehouse'].map((label) => ({ label, value: label }))} /><SelectField label="Price range" value={price} onChange={setPrice} icon={Tag} options={[{ label: 'Under GH₵1,000', value: 'under-1000' }, { label: 'GH₵1,000 – GH₵2,500', value: '1000-2500' }, { label: 'GH₵2,500+', value: '2500-plus' }]} /></div><button onClick={handleSearch} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1B2A4A] px-5 py-4 font-bold text-white transition hover:bg-[#243b67]"><Search className="size-5" /> Search verified properties</button></div></section>
+      <FeaturedProperties properties={featuredProperties} />
 
       <section id="regions" className="vr-ghana-pattern bg-[#f5f9fc] px-5 pb-24 pt-16 sm:px-8 lg:px-12"><div><p className="font-bold uppercase tracking-[0.22em] text-[#52b98d]">Start exploring</p><h2 className="mt-5 text-4xl font-black tracking-[-0.045em] text-[#10233d] sm:text-5xl">Browse by region</h2></div><div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">{regionsForDisplay.map((region, index) => { const Icon = regionIcons[index % regionIcons.length]; return <button type="button" onClick={() => browseRegion(region.id)} key={region.id} className={`group relative min-h-[190px] overflow-hidden rounded-[1.6rem] border-2 border-[#e1e7ef] bg-[#1B2A4A] p-4 text-center shadow-sm transition hover:-translate-y-2 hover:border-emerald-300 hover:shadow-xl sm:min-h-[230px] sm:p-7 sm:p-8 vr-card-enter vr-delay-${(index % 8) + 1}`}><img src={["/ghana-home-accra.png", "/ghana-home-kumasi.png", "/ghana-home-coast.png", "/ghana-home-north.png"][index % 4]} alt={`${region.name} Ghana rental homes`} className="absolute inset-0 size-full object-cover opacity-45 transition duration-700 group-hover:scale-110 group-hover:opacity-60" /><span className="absolute inset-0 bg-gradient-to-t from-[#10233d] via-[#10233d]/45 to-transparent" /><span className="relative z-10 flex min-h-[155px] flex-col items-center justify-end sm:min-h-[190px]"><span aria-hidden="true" className="grid size-16 place-items-center rounded-2xl bg-white/15 text-white backdrop-blur-sm transition group-hover:scale-105 sm:size-20"><Icon className="size-9 sm:size-10" strokeWidth={2.5} /></span><h3 className="mt-4 text-base font-black text-white sm:text-xl">{region.name}</h3><p className="mt-2 text-sm font-medium text-white/80">Verified rentals</p></span></button>})}</div></section>
 
