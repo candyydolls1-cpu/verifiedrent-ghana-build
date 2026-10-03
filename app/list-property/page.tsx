@@ -7,11 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 const regions = ['Greater Accra', 'Ashanti', 'Western', 'Central', 'Eastern', 'Volta', 'Northern', 'Upper East', 'Upper West', 'Brong-Ahafo', 'Western North', 'Ahafo', 'Bono East', 'Oti', 'North East', 'Savannah']
 const propertyTypes = ['Apartment', 'House', 'Guest House', 'Hotel', 'Airbnb', 'Hostel', 'Townhouse', 'Office', 'Shop', 'Land', 'Event Space', 'Warehouse']
 const photoPrompts = ['Show us your building from outside', 'Show us the main room inside', 'Something that makes this home special.', 'Show us the kitchen', 'Show us a bedroom', 'Show us the bathroom', 'Show us the compound or parking', 'Add another photo']
-type FormState = { phone: string; whatsapp: string; title: string; type: string; region: string; neighborhood: string; rent: string; bedrooms: string; bathrooms: string; furnished: string; amenities: string; availability: string }
+type FormState = { email: string; phone: string; whatsapp: string; title: string; type: string; region: string; neighborhood: string; rent: string; bedrooms: string; bathrooms: string; furnished: string; amenities: string; availability: string }
 
 export default function ListPropertyPage() {
   const router = useRouter()
-  const [form, setForm] = useState<FormState>({ phone: '', whatsapp: '', title: '', type: 'Apartment', region: 'Greater Accra', neighborhood: '', rent: '', bedrooms: '1', bathrooms: '1', furnished: 'Unfurnished', amenities: '', availability: 'Available now' })
+  const [form, setForm] = useState<FormState>({ email: '', phone: '', whatsapp: '', title: '', type: 'Apartment', region: 'Greater Accra', neighborhood: '', rent: '', bedrooms: '1', bathrooms: '1', furnished: 'Unfurnished', amenities: '', availability: 'Available now' })
   const [photos, setPhotos] = useState<(File | null)[]>(Array(8).fill(null))
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -27,8 +27,8 @@ export default function ListPropertyPage() {
     if (!form.rent || Number(form.rent) <= 0 || selectedPhotos.length < 1) { setError('Add a monthly rent and at least one photo to publish.'); setLoading(false); return }
     const { data: region } = await supabase.from('regions').select('id').eq('name', form.region).maybeSingle()
     if (!region) { setError('Please choose a valid Ghana region.'); setLoading(false); return }
-    const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: authUserId, email: user.email, phone: form.phone.trim() || null, whatsapp: form.whatsapp.trim() || null, preferred_contact: form.whatsapp.trim() ? 'whatsapp' : form.phone.trim() ? 'phone' : null }, { onConflict: 'user_id' })
-    if (contactError) { setError('We could not save your contact details. Please try again.'); setLoading(false); return }
+    const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: user.id, phone: form.phone, email: form.email || null, preferred_contact: form.whatsapp ? 'whatsapp' : 'phone' }, { onConflict: 'user_id' })
+    if (contactError) { setError(contactError.message); setLoading(false); return }
     const propertyPayload = { landlord_id: authUserId, title: form.title.trim(), property_type: form.type, region_id: region.id, neighborhood: form.neighborhood.trim(), rent_amount: Number(form.rent), bedrooms: Number(form.bedrooms), bathrooms: Number(form.bathrooms), is_furnished: form.furnished === 'Furnished', amenities: form.amenities.trim() || null, availability: form.availability, status: 'published', is_verified_landlord: false }
     const { data: existingProperty } = await supabase.from('properties').select('id').eq('landlord_id', authUserId).eq('title', form.title.trim()).maybeSingle()
     const { data: property, error: propertyError } = await supabase.from('properties').upsert(existingProperty ? { id: existingProperty.id, ...propertyPayload } : propertyPayload, { onConflict: 'id' }).select('id').single()
