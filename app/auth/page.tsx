@@ -94,14 +94,12 @@ export default function AuthPage() {
       }
 
       setMessage('Authentication successful, checking your account role...')
-      console.log('[v0] Authentication successful:', { userId: data.user.id, hasSession: Boolean(data.session) })
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', data.user.id)
         .maybeSingle()
 
-      console.log('[v0] Profile lookup result:', { userId: data.user.id, profile, error: profileError?.message ?? null })
       if (profileError) {
         setMessage(profileError.message)
         setLoading(false)
@@ -115,7 +113,6 @@ export default function AuthPage() {
 
       const destination = profile.role === 'tenant' ? '/tenant' : profile.role === 'landlord' ? '/dashboard' : '/auth?mode=signup'
       setMessage(`Authentication successful, redirecting to ${destination}...`)
-      console.log('[v0] Redirecting after authentication:', { destination, role: profile.role })
       setLoading(false)
       router.replace(destination)
       router.refresh()
