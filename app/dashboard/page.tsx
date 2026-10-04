@@ -8,6 +8,7 @@ import { TenantFeedEngagement } from '@/components/tenant-feed-engagement'
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  console.log('[v0] Dashboard session check:', { authenticated: Boolean(user), userId: user?.id ?? null })
   if (!user) redirect('/auth')
   const { data: profile } = await supabase.from('profiles').select('full_name,email,role').eq('id', user.id).maybeSingle()
   const metadataName = String(user.user_metadata?.full_name ?? '').trim()
