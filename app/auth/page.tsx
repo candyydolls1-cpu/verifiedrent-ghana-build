@@ -75,7 +75,7 @@ export default function AuthPage() {
         role,
       }, { onConflict: 'id' })
 
-      router.replace(role === 'landlord' ? '/list-property?step=listing' : '/dashboard')
+      router.replace(role === 'landlord' ? '/dashboard' : '/tenant')
       router.refresh()
       return
     }
