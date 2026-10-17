@@ -11,7 +11,8 @@ function DirectContact({ property, userId }: { property: Listing; userId: string
   const [open, setOpen] = useState(false)
   const [notice, setNotice] = useState('')
   const contact = property.landlord_profiles
-  const digits = (contact?.phone ?? '').replace(/\D/g, '')
+  const rawDigits = (contact?.phone ?? '').replace(/\D/g, '')
+  const digits = rawDigits.startsWith('0') ? `233${rawDigits.slice(1)}` : rawDigits
   const preferred = contact?.preferred_contact?.toLowerCase()
   const href = preferred === 'whatsapp' && digits ? `https://wa.me/${digits}` : preferred === 'phone' && contact?.phone ? `tel:${contact.phone}` : contact?.email ? `mailto:${contact.email}` : undefined
   async function send() {
