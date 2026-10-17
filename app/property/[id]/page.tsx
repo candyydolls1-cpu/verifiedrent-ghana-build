@@ -13,7 +13,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   const [{ data: landlord }, { count: listingCount }, { data: contact }, { data: region }] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', property.landlord_id).maybeSingle(),
     supabase.from('properties').select('id', { count: 'exact', head: true }).eq('landlord_id', property.landlord_id).eq('status', 'published'),
-    supabase.from('landlord_profiles').select('phone,whatsapp').eq('user_id', property.landlord_id).maybeSingle(),
+    supabase.from('landlord_profiles').select('full_name,phone,whatsapp').eq('user_id', property.landlord_id).maybeSingle(),
     supabase.from('regions').select('name').eq('id', property.region_id).maybeSingle(),
   ])
   return <PropertyDetail property={{ ...property, region_name: region?.name }} landlord={landlord} contact={contact} listingCount={listingCount ?? 0} />
