@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-type Listing = { id: string; title: string; description: string | null; property_type: string; neighborhood: string | null; approximate_location: string | null; rent_amount: number; region_id?: string | null; city_id?: string | null; regions?: { name: string } | null; cities?: { name: string } | null; landlord_id: string; landlord_profiles?: { phone: string | null; preferred_contact: string | null; email: string | null } | null; property_images?: { image_url: string; is_primary: boolean | null }[]; property_likes?: { user_id: string }[]; reviews?: { id: string; rating: number; feedback: string | null }[] }
+type Listing = { id: string; title: string; description: string | null; property_type: string; neighborhood: string | null; approximate_location: string | null; rent_amount: number; region_id?: string | null; city_id?: string | null; regions?: { name: string } | null; cities?: { name: string } | null; landlord_id: string; landlord_profiles?: { phone: string | null; whatsapp: string | null; preferred_contact: string | null; email: string | null } | null; property_images?: { image_url: string; is_primary: boolean | null }[]; property_likes?: { user_id: string }[]; reviews?: { id: string; rating: number; feedback: string | null }[] }
 
 function DirectContact({ property, userId }: { property: Listing; userId: string }) {
   const supabase = createClient()
@@ -11,7 +11,7 @@ function DirectContact({ property, userId }: { property: Listing; userId: string
   const [open, setOpen] = useState(false)
   const [notice, setNotice] = useState('')
   const contact = property.landlord_profiles
-  const rawDigits = (contact?.phone ?? '').replace(/\D/g, '')
+  const rawDigits = (contact?.whatsapp || contact?.phone || '').replace(/\D/g, '')
   const whatsappDigits = rawDigits.startsWith('0') ? `233${rawDigits.slice(1)}` : rawDigits
   const preferred = contact?.preferred_contact?.toLowerCase()
   const href = preferred === 'whatsapp' && whatsappDigits ? `https://wa.me/${whatsappDigits}` : preferred === 'phone' && contact?.phone ? `tel:${contact.phone}` : contact?.email ? `mailto:${contact.email}` : undefined
