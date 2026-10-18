@@ -4,7 +4,7 @@ import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-const regions = ['Greater Accra', 'Ashanti', 'Western', 'Central', 'Eastern', 'Volta', 'Northern', 'Upper East', 'Upper West', 'Brong-Ahafo', 'Western North', 'Ahafo', 'Bono East', 'Oti', 'North East', 'Savannah']
+const regions = ['Greater Accra', 'Ashanti', 'Western', 'Central', 'Eastern', 'Volta', 'Northern', 'Upper East', 'Upper West', 'Western North', 'Ahafo', 'Bono East', 'Oti', 'North East', 'Savannah']
 const propertyTypes = ['Apartment', 'House', 'Guest House', 'Hotel', 'Airbnb', 'Hostel', 'Townhouse', 'Office', 'Shop', 'Land', 'Event Space', 'Warehouse']
 const photoPrompts = ['Show us your building from outside', 'Show us the main room inside', 'Something that makes this home special.', 'Show us the kitchen', 'Show us a bedroom', 'Show us the bathroom', 'Show us the compound or parking', 'Add another photo']
 type FormState = { email: string; phone: string; whatsapp: string; title: string; description: string; type: string; region: string; neighborhood: string; rent: string; bedrooms: string; bathrooms: string; furnished: string; amenities: string; availability: string }

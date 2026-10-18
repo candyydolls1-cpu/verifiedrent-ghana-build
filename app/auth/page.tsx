@@ -69,13 +69,17 @@ export default function AuthPage() {
         setMessage('We could not complete account setup. Please try again.')
         return
       }
-      await supabase.from('profiles').upsert({
+      const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
         email: data.user.email,
         full_name: name.trim() || null,
         display_name: name.trim() ? name.trim().split(/\s+/)[0] : null,
         role,
       }, { onConflict: 'id' })
+      if (profileError) {
+        setMessage(profileError.message)
+        return
+      }
 
       router.replace(role === 'landlord' ? '/dashboard' : '/tenant')
       router.refresh()
