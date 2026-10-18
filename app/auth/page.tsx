@@ -105,13 +105,14 @@ export default function AuthPage() {
         setLoading(false)
         return
       }
-      if (!profile?.role) {
-        setMessage('No account role was found. Please create your account again.')
+      const role = profile?.role ?? data.user.user_metadata?.role
+      if (role !== 'landlord' && role !== 'tenant') {
+        setMessage('Your account role could not be determined. Please contact support.')
         setLoading(false)
         return
       }
 
-      const destination = profile.role === 'tenant' ? '/tenant' : profile.role === 'landlord' ? '/dashboard' : '/auth?mode=signup'
+      const destination = role === 'landlord' ? '/dashboard' : '/tenant'
       setMessage(`Authentication successful, redirecting to ${destination}...`)
       setLoading(false)
       router.replace(destination)
