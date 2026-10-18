@@ -24,6 +24,8 @@ export default function AuthPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [confirmationPending, setConfirmationPending] = useState(false)
+  const [roleRescue, setRoleRescue] = useState(false)
+  const [rescueLoading, setRescueLoading] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -107,7 +109,7 @@ export default function AuthPage() {
       }
       const role = profile?.role ?? data.user.user_metadata?.role
       if (role !== 'landlord' && role !== 'tenant') {
-        setMessage('Your account role could not be determined. Please contact support.')
+        setRoleRescue(true)
         setLoading(false)
         return
       }
@@ -122,6 +124,19 @@ export default function AuthPage() {
       setLoading(false)
     }
   }
+
+  async function saveRescuedRole(nextRole: 'landlord' | 'tenant') {
+    setRescueLoading(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setMessage('Your session expired. Please sign in again.'); setRescueLoading(false); return }
+    const { error } = await supabase.from('profiles').upsert({ id: user.id, role: nextRole }, { onConflict: 'id' })
+    if (error) { setMessage(error.message); setRescueLoading(false); return }
+    router.replace(nextRole === 'landlord' ? '/dashboard' : '/tenant')
+    router.refresh()
+  }
+
+  if (roleRescue) return <main className="grid min-h-screen place-items-center bg-[#f6f9fc] px-6 py-10 text-[#1B2A4A]"><section className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-xl"><h1 className="text-3xl font-bold">Choose your account type</h1><p className="mt-3 text-slate-600">Tell us how you will use VerifiedRent Ghana.</p><div className="mt-8 grid gap-3"><button disabled={rescueLoading} onClick={() => saveRescuedRole('landlord')} className="min-h-12 rounded-xl bg-emerald-600 px-4 font-bold text-white">I am a landlord</button><button disabled={rescueLoading} onClick={() => saveRescuedRole('tenant')} className="min-h-12 rounded-xl border border-slate-200 px-4 font-bold text-[#1B2A4A]">I am a tenant</button></div>{message && <p role="status" className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p>}</section></main>
 
   if (confirmationPending) return (
     <main className="grid min-h-screen place-items-center bg-[#f6f9fc] px-6 py-10 text-[#1B2A4A]">
@@ -158,7 +173,7 @@ export default function AuthPage() {
           <p className="mt-2 text-slate-500">{mode === 'signin' ? 'Access your rental workspace.' : 'Choose how you will use VerifiedRent.'}</p>
           <form onSubmit={submit} className="mt-8 flex flex-col gap-4">
             {mode === 'signup' && <input required value={name} onChange={event => setName(event.target.value)} placeholder="Full name" autoComplete="name" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />}
-            {mode === 'signup' && <div className="grid grid-cols-2 gap-2">{(['tenant', 'landlord'] as const).map(item => <button type="button" key={item} onClick={() => setRole(item)} className={`rounded-xl border px-4 py-3 capitalize ${role === item ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : ''}`}>{item}</button>)}</div>}
+            {mode === 'signup' && <fieldset required className="grid gap-2"><legend className="text-sm font-semibold">I am a...</legend><div className="grid grid-cols-2 gap-2">{(['tenant', 'landlord'] as const).map(item => <button type="button" key={item} onClick={() => setRole(item)} className={`rounded-xl border px-4 py-3 capitalize ${role === item ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : ''}`}>{item}</button>)}</div></fieldset>}
             <input required type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="Enter your email." autoComplete="new-password" autoCapitalize="none" spellCheck={false} inputMode="email" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />
             <input required minLength={6} type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Password (6+ characters)" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />
             {message && <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p>}
