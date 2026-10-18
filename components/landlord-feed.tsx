@@ -1,34 +1,15 @@
 'use client'
 
-import { useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
-const propertyTypes = ['Apartment', 'Single Room', 'Self-Contained', 'House', 'Compound House', 'Airbnb', 'Hotel', 'Guesthouse', 'Office Space', 'Land', 'Warehouse']
-type Lookup = { id: string; name: string }
-type District = { id: number; name: string }
 type Listing = { id: string; title: string; property_type: string; price: number; status: string }
-type Metric = { views: number; likes: number; inquiries: number }
 
-export function LandlordFeed({ userId, properties, regions, analyticsByType = {} }: { userId: string; properties: Listing[]; regions: Lookup[]; analyticsByType?: Record<string, Metric> }) {
-  const supabase = createClient()
-  const [form, setForm] = useState({ title: '', description: '', property_type: 'Apartment', region_id: '', city_id: '', price: '' })
-  const [districts, setDistricts] = useState<District[]>([])
-  const [photos, setPhotos] = useState<File[]>([])
-  const [notice, setNotice] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const set = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }))
-  async function chooseRegion(region_id: string) { setForm((current) => ({ ...current, region_id, city_id: '' })); const { data } = await supabase.from('cities').select('id,name').eq('region_id', region_id).order('name'); setDistricts(data ?? []) }
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setNotice('')
-    const propertyPayload = { landlord_id: userId, title: form.title.trim(), description: form.description.trim() || null, property_type: form.property_type, region_id: form.region_id, city_id: Number(form.city_id), neighborhood: districts.find((item) => String(item.id) === form.city_id)?.name ?? '', rent_amount: Number(form.price), status: 'published', is_verified_landlord: false }
-    const { data: property, error } = await supabase.from('properties').upsert(editingId ? { id: editingId, ...propertyPayload } : propertyPayload, { onConflict: 'id' }).select('id').single()
-    if (error || !property) { setNotice(error?.message ?? 'Supabase returned no property after publishing.'); setBusy(false); return }
-    const rows: { property_id: string; image_url: string; is_cover: boolean }[] = []
-    for (const [index, photo] of photos.slice(0, 8).entries()) { const path = `${userId}/${property.id}/${crypto.randomUUID()}-${photo.name.replace(/[^a-zA-Z0-9._-]/g, '-')}`; const upload = await supabase.storage.from('property-images').upload(path, photo, { contentType: photo.type, upsert: false }); if (upload.error) { setNotice(upload.error.message); setBusy(false); return } const { data: url } = supabase.storage.from('property-images').getPublicUrl(path); rows.push({ property_id: property.id, image_url: url.publicUrl, is_cover: index === 0 }) }
-    if (rows.length) { const { error: imageError } = await supabase.from('property_images').insert(rows); if (imageError) { setNotice(imageError.message); setBusy(false); return } }
-    setNotice('Your first listing is live. Tenants can find it now.'); setForm({ title: '', description: '', property_type: 'Apartment', region_id: '', city_id: '', price: '' }); setDistricts([]); setPhotos([]); setBusy(false)
-  }
-  return <section className="space-y-6"><div className="grid gap-3 sm:grid-cols-2">{properties.map((property) => <article key={property.id} className="rounded-2xl border border-slate-200 bg-white p-4"><h3 className="font-bold">{property.title}</h3><p className="mt-1 text-sm text-slate-500">{property.property_type} · {property.status}</p><button type="button" onClick={() => { setEditingId(property.id); setForm({ title: property.title, description: '', property_type: property.property_type, region_id: '', city_id: '', price: String(property.price) }); setNotice('Editing this listing.') }} className="mt-3 min-h-11 rounded-xl border border-emerald-200 px-4 font-semibold text-emerald-700">Edit</button></article>)}</div><div><h2 className="text-3xl font-black">Create a listing</h2></div><form onSubmit={submit} className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-6 sm:grid-cols-2"><Field label="Title" required value={form.title} onChange={(e: ChangeEvent<HTMLInputElement>) => set('title', e.target.value)} /><Field label="Property type" as="select" value={form.property_type} onChange={(e: ChangeEvent<HTMLSelectElement>) => set('property_type', e.target.value)}>{propertyTypes.map((item) => <option key={item}>{item}</option>)}</Field><Field label="Region" as="select" required value={form.region_id} onChange={(e: ChangeEvent<HTMLSelectElement>) => chooseRegion(e.target.value)}><option value="">Choose region</option>{regions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Field><Field label="City" as="select" required value={form.city_id} disabled={!form.region_id} onChange={(e: ChangeEvent<HTMLSelectElement>) => set('city_id', e.target.value)}><option value="">Choose city</option>{districts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Field><Field label="Price (GHS)" type="number" min="0" required value={form.price} onChange={(e: ChangeEvent<HTMLInputElement>) => set('price', e.target.value)} /><label className="text-sm font-semibold text-slate-700">Photos <span className="font-normal text-slate-500">(up to 8; first is cover)</span><input className="mt-2 block w-full rounded-xl border border-slate-200 p-3 text-sm" type="file" accept="image/*" multiple required={properties.length === 0} onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, 8))} /></label><label className="sm:col-span-2 text-sm font-semibold text-slate-700">Description<textarea required value={form.description} onChange={(e) => set('description', e.target.value)} className="mt-2 min-h-32 w-full rounded-xl border border-slate-200 p-3 font-normal outline-none focus:border-emerald-500" /></label><button disabled={busy} className="sm:col-span-2 rounded-xl bg-[#10233d] px-5 py-3 font-bold text-white disabled:opacity-50">{busy ? 'Publishing…' : 'Publish property'}</button>{notice && <p className="sm:col-span-2 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{notice}</p>}</form><div className="grid gap-3 sm:grid-cols-3">{Object.entries(analyticsByType).map(([type, metric]) => <div key={type} className="rounded-2xl border border-slate-200 bg-white p-4"><p className="font-bold">{type}</p><p className="mt-2 text-sm text-slate-500">{metric.views} views · {metric.likes} likes · {metric.inquiries} inquiries</p></div>)}</div></section>
+export function LandlordFeed({ properties }: { userId: string; properties: Listing[]; regions: { id: string; name: string }[]; analyticsByType?: Record<string, { views: number; likes: number; inquiries: number }> }) {
+  return <section className="space-y-6">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <h2 className="text-3xl font-black">Your listings</h2>
+      <Link href="/list-property" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-4 font-bold text-white">Post New Property</Link>
+    </div>
+    {properties.length > 0 ? <div className="grid gap-3 sm:grid-cols-2">{properties.map((property) => <article key={property.id} className="rounded-2xl border border-slate-200 bg-white p-4"><h3 className="font-bold">{property.title}</h3><p className="mt-1 text-sm text-slate-500">{property.property_type} · {property.status}</p></article>)}</div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-600">You have not posted a property yet.</div>}
+  </section>
 }
-function Field({ label, as = 'input', children, ...props }: { label: string; as?: 'input' | 'select'; children?: ReactNode; [key: string]: any }) { const Component = as; return <label className="text-sm font-semibold text-slate-700">{label}<Component {...props} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 font-normal outline-none focus:border-emerald-500">{children}</Component></label> }
