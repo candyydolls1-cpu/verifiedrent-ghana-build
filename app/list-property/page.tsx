@@ -33,7 +33,7 @@ export default function ListPropertyPage() {
       const regionValue = formElement.querySelectorAll<HTMLSelectElement>('select')[0]?.value || form.region
       const cityValue = formElement.querySelectorAll<HTMLSelectElement>('select')[1]?.value || form.city_id
       const rentValue = formElement.querySelector<HTMLInputElement>('input[type="number"]')?.value || form.rent
-      const missing = !titleValue ? 'Property title is required before continuing.' : !regionValue ? 'Region is required before continuing.' : !cityValue ? 'City is required before continuing.' : !rentValue || Number(rentValue) <= 0 ? 'Monthly rent is required before continuing.' : ''
+      const missing = !titleValue ? 'Property title is required before continuing.' : !regionValue ? 'Region is required before continuing.' : !cityValue ? 'Choose your city from the list.' : !rentValue || Number(rentValue) <= 0 ? 'Monthly rent is required before continuing.' : ''
       if (missing) { setError(missing); return }
     }
     setCompletedStep(step)
