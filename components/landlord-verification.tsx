@@ -27,23 +27,39 @@ export function LandlordVerification({ userId, verification, profile }: { userId
     async function upload(file: File, label: string) {
       const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
       const path = `${userId}/${label}-${crypto.randomUUID()}.${extension}`
-      const result = await supabase.storage.from('verification-docs').upload(path, file, { contentType: file.type, upsert: false })
-      if (result.error) throw result.error
-      return supabase.storage.from('verification-docs').getPublicUrl(path).data.publicUrl
+      try {
+        const result = await supabase.storage.from('verification-docs').upload(path, file, { contentType: file.type, upsert: false })
+        if (result.error) throw result.error
+        return path
+      } catch (error) {
+        throw new Error(`Uploading ${label} failed: ${error instanceof Error ? error.message : String(error)}`)
+      }
     }
+    const governmentIdUrl = await upload(ghanaCard, 'ghana-card').catch((error) => { setMessage(error instanceof Error ? error.message : String(error)); setBusy(false); return null })
+    if (!governmentIdUrl) return
+    const ownershipProofUrl = await upload(ownershipProof, 'ownership-proof').catch((error) => { setMessage(error instanceof Error ? error.message : String(error)); setBusy(false); return null })
+    if (!ownershipProofUrl) return
+    let application: { id: string; status: 'pending' | 'approved' | 'rejected' }
     try {
-      const { data: application, error: applicationError } = await supabase.from('verification_applications').insert({ landlord_id: userId, full_legal_name: fullLegalName.trim(), phone: phone.trim(), status: 'pending' }).select('id,status').single()
-      if (applicationError) throw applicationError
-      const governmentIdUrl = await upload(ghanaCard, 'ghana-card')
-      const ownershipProofUrl = await upload(ownershipProof, 'ownership-proof')
-      const { error: documentsError } = await supabase.from('verification_documents').insert([{ application_id: application.id, document_type: 'ghana_card', file_url: governmentIdUrl }, { application_id: application.id, document_type: 'ownership_proof', file_url: ownershipProofUrl }])
-      if (documentsError) throw documentsError
-      setCurrent({ status: application.status })
+      const result = await supabase.from('verification_applications').insert({ landlord_id: userId, full_legal_name: fullLegalName.trim(), phone: phone.trim() }).select('id,status').single()
+      if (result.error || !result.data) throw result.error ?? new Error('No application was returned.')
+      application = result.data
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Your verification documents could not be submitted.')
+      setMessage(`Creating application failed: ${error instanceof Error ? error.message : String(error)}`)
       setBusy(false)
       return
     }
+    for (const document of [{ document_type: 'ghana_card', file_url: governmentIdUrl }, { document_type: 'ownership_proof', file_url: ownershipProofUrl }]) {
+      try {
+        const result = await supabase.from('verification_documents').insert({ application_id: application.id, ...document })
+        if (result.error) throw result.error
+      } catch (error) {
+        setMessage(`Saving ${document.document_type} failed: ${error instanceof Error ? error.message : String(error)}`)
+        setBusy(false)
+        return
+      }
+    }
+    setCurrent({ status: application.status })
     setGhanaCard(null)
     setOwnershipProof(null)
     setMessage('Your documents were submitted for review.')
