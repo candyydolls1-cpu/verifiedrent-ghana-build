@@ -17,5 +17,5 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
     supabase.from('regions').select('name').eq('id', property.region_id).maybeSingle(),
     supabase.from('cities').select('name').eq('id', property.city_id).maybeSingle(),
   ])
-  return <PropertyDetail property={{ ...property, region_name: region?.name, city_name: city?.name }} landlord={landlord} contact={contact} listingCount={listingCount ?? 0} />
+  return <PropertyDetail property={{ ...property, region_name: region?.name, city_name: city?.name, gps_address: property.gps_address }} landlord={landlord} contact={contact} listingCount={listingCount ?? 0} />
 }
