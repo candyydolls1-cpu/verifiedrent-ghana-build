@@ -14,11 +14,21 @@ export default function PasswordResetPage() {
 
   useEffect(() => {
     const supabase = createClient()
+    let active = true
     const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setReady(true)
+      if (active && (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN')) setReady(true)
     })
-    void supabase.auth.getSession().then(({ data: session }) => setReady(Boolean(session.session)))
-    return () => data.subscription.unsubscribe()
+    void (async () => {
+      const url = new URL(window.location.href)
+      const code = url.searchParams.get('code')
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (active && error) setMessage(error.message)
+      }
+      const { data: session } = await supabase.auth.getSession()
+      if (active) setReady(Boolean(session.session))
+    })()
+    return () => { active = false; data.subscription.unsubscribe() }
   }, [])
 
   async function submit(event: FormEvent<HTMLFormElement>) {

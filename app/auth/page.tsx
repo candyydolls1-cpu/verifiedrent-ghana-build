@@ -29,6 +29,8 @@ export default function AuthPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    if (params.has('code') || hash.has('access_token') || hash.get('type') === 'recovery') { router.replace('/auth/reset' + window.location.search + window.location.hash); return }
     const requestedMode = params.get('mode')
     const requestedRole = params.get('role')
     if (requestedMode === 'signup') setMode('signup')
@@ -42,7 +44,7 @@ export default function AuthPage() {
     if (!email.trim()) { setMessage('Enter your email first.'); return }
     setLoading(true)
     setMessage('')
-    const { error } = await createClient().auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/auth/reset` })
+    const { error } = await createClient().auth.resetPasswordForEmail(email.trim(), { redirectTo: 'https://verifiedrentgh.vercel.app/auth/reset' })
     setMessage(error ? error.message : 'Check your email for a password reset link.')
     setLoading(false)
   }
