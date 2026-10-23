@@ -38,6 +38,15 @@ export default function AuthPage() {
     if (error === 'missing_confirmation_code') setMessage('That confirmation link is incomplete. Request a new confirmation email.')
   }, [])
 
+  async function sendPasswordReset() {
+    if (!email.trim()) { setMessage('Enter your email first.'); return }
+    setLoading(true)
+    setMessage('')
+    const { error } = await createClient().auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/auth/reset` })
+    setMessage(error ? error.message : 'Check your email for a password reset link.')
+    setLoading(false)
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
@@ -179,7 +188,7 @@ export default function AuthPage() {
             {mode === 'signup' && <input required value={name} onChange={event => setName(event.target.value)} placeholder="Full name" autoComplete="name" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />}
             {mode === 'signup' && <fieldset required className="grid gap-2"><legend className="text-sm font-semibold">I am a...</legend><div className="grid grid-cols-2 gap-2">{(['tenant', 'landlord'] as const).map(item => <button type="button" key={item} onClick={() => setRole(item)} className={`rounded-xl border px-4 py-3 capitalize ${role === item ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : ''}`}>{item}</button>)}</div></fieldset>}
             <input required type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="Enter your email." autoComplete="new-password" autoCapitalize="none" spellCheck={false} inputMode="email" className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />
-            <input required minLength={6} type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Password (6+ characters)" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />
+            <input required minLength={6} type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Password (6+ characters)" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} className="rounded-xl border px-4 py-3 outline-none focus:border-emerald-500" />{mode === 'signin' && <button type="button" onClick={sendPasswordReset} disabled={loading} className="self-end text-sm font-semibold text-emerald-700 underline-offset-4 hover:underline">Forgot password?</button>}
             {message && <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{message}</p>}
             <button disabled={loading} className="rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">{loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}</button>
           </form>

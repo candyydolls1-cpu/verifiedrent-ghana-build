@@ -79,7 +79,7 @@ export default function ListPropertyPage() {
       const { error: imageError } = await supabase.from('property_images').upsert({ property_id: property.id, image_url: imageUrl, is_primary: displayOrder === 1, display_order: displayOrder }, { onConflict: 'property_id,display_order' })
       if (imageError) { setError(imageError.message); setLoading(false); return }
     }
-    router.push(`/property/${property.id}`)
+    router.replace(`/property/${property.id}`)
   }
 
   function choosePhoto(index: number, file: File | null) { setPhotos((current) => current.map((photo, photoIndex) => photoIndex === index ? file : photo)) }
