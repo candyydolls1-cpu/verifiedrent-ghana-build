@@ -10,11 +10,12 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
   const supabase = await createClient()
   const { data: property, error } = await supabase.from('properties').select('*, property_images(image_url,is_primary,display_order)').eq('id', id).eq('status', 'published').maybeSingle()
   if (error || !property) notFound()
-  const [{ data: landlord }, { count: listingCount }, { data: contact }, { data: region }] = await Promise.all([
+  const [{ data: landlord }, { count: listingCount }, { data: contact }, { data: region }, { data: city }] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', property.landlord_id).maybeSingle(),
     supabase.from('properties').select('id', { count: 'exact', head: true }).eq('landlord_id', property.landlord_id).eq('status', 'published'),
     supabase.from('landlord_profiles').select('full_legal_name,phone,whatsapp').eq('user_id', property.landlord_id).maybeSingle(),
     supabase.from('regions').select('name').eq('id', property.region_id).maybeSingle(),
+    supabase.from('cities').select('name').eq('id', property.city_id).maybeSingle(),
   ])
-  return <PropertyDetail property={{ ...property, region_name: region?.name }} landlord={landlord} contact={contact} listingCount={listingCount ?? 0} />
+  return <PropertyDetail property={{ ...property, region_name: region?.name, city_name: city?.name }} landlord={landlord} contact={contact} listingCount={listingCount ?? 0} />
 }
