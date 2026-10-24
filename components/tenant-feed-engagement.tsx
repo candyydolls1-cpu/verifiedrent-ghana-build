@@ -14,7 +14,10 @@ function DirectContact({ property, userId }: { property: Listing; userId: string
   const rawDigits = (contact?.whatsapp || contact?.phone || '').replace(/\D/g, '')
   const whatsappDigits = rawDigits.startsWith('0') ? `233${rawDigits.slice(1)}` : rawDigits
   const preferred = contact?.preferred_contact?.toLowerCase()
-  const href = preferred === 'whatsapp' && whatsappDigits ? `https://wa.me/${whatsappDigits}` : preferred === 'phone' && contact?.phone ? `tel:${contact.phone}` : contact?.email ? `mailto:${contact.email}` : undefined
+  const normalizedDigits = whatsappDigits.startsWith('0') ? `233${whatsappDigits.slice(1)}` : whatsappDigits
+  const phoneDigits = contact?.phone?.replace(/\D/g, '') || ''
+  const normalizedPhone = phoneDigits.startsWith('0') ? `233${phoneDigits.slice(1)}` : phoneDigits
+  const href = preferred === 'whatsapp' && normalizedDigits ? `https://wa.me/${normalizedDigits}` : preferred === 'phone' && normalizedPhone ? `tel:+${normalizedPhone}` : contact?.email ? `mailto:${contact.email}` : undefined
   async function send() {
     if (!message.trim()) return
     const { error } = await supabase.from('inquiries').insert({ sender_id: userId, landlord_id: property.landlord_id, property_id: property.id, message: message.trim() })
