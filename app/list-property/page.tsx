@@ -20,8 +20,10 @@ export default function ListPropertyPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1)
+  const [editId, setEditId] = useState<string | null>(null)
   const [completedStep, setCompletedStep] = useState(0)
   const update = (key: keyof FormState, value: string) => setForm((current) => ({ ...current, [key]: value }))
+  useEffect(() => { const id = new URLSearchParams(window.location.search).get('edit'); if (!id) return; setEditId(id); void createClient().from('properties').select('title,description,property_type,region_id,city_id,neighborhood,gps_address,rent_amount,bedrooms,bathrooms,is_furnished,amenities,availability').eq('id', id).maybeSingle().then(({ data }) => { if (!data) return; setForm((current) => ({ ...current, title: data.title ?? '', description: data.description ?? '', type: data.property_type ?? current.type, city_id: data.city_id ?? '', neighborhood: data.neighborhood ?? '', gps_address: data.gps_address ?? '', rent: String(data.rent_amount ?? ''), bedrooms: String(data.bedrooms ?? ''), bathrooms: String(data.bathrooms ?? ''), furnished: data.is_furnished ? 'Furnished' : 'Unfurnished', amenities: data.amenities ?? '', availability: data.availability ?? current.availability })) ; setStep(2); setCompletedStep(1) }) }, [])
   async function loadRegions() { if (regionOptions.length) return; const { data } = await createClient().from('regions').select('name').order('name'); setRegionOptions((data ?? []).map((region) => region.name)) }
   async function chooseRegion(regionName: string) { update('region', regionName); update('city_id', ''); const supabase = createClient(); const { data } = await supabase.from('regions').select('id').eq('name', regionName).maybeSingle(); if (data) { const { data: cityRows } = await supabase.from('cities').select('id,name').eq('region_id', data.id).order('name'); setCities(cityRows ?? []) } else setCities([]) }
 
@@ -65,7 +67,7 @@ export default function ListPropertyPage() {
     const { error: contactError } = await supabase.from('landlord_profiles').upsert({ user_id: user.id, phone: form.phone, whatsapp: form.whatsapp || null, email: user.email || null, preferred_contact: form.whatsapp ? 'whatsapp' : 'phone' }, { onConflict: 'user_id' })
     if (contactError) { setError(contactError.message); setLoading(false); return }
     const propertyPayload = { landlord_id: authUserId, title: form.title.trim(), description: form.description.trim() || null, property_type: form.type, region_id: region.id, city_id: form.city_id, neighborhood: form.neighborhood.trim(), gps_address: form.gps_address.trim() || null, rent_amount: Number(form.rent), bedrooms: Number(form.bedrooms), bathrooms: Number(form.bathrooms), is_furnished: form.furnished === 'Furnished', amenities: form.amenities.trim() || null, availability: form.availability, status: 'published', is_verified_landlord: false }
-    const { data: existingProperty, error: existingPropertyError } = await supabase.from('properties').select('id').eq('landlord_id', authUserId).eq('title', form.title.trim()).maybeSingle()
+    const { data: existingProperty, error: existingPropertyError } = editId ? { data: { id: editId }, error: null } : await supabase.from('properties').select('id').eq('landlord_id', authUserId).eq('title', form.title.trim()).maybeSingle()
     if (existingPropertyError) { setError(existingPropertyError.message); setLoading(false); return }
     const { data: property, error: propertyError } = await supabase.from('properties').upsert(existingProperty ? { id: existingProperty.id, ...propertyPayload } : propertyPayload, { onConflict: 'id' }).select('id').single()
     if (propertyError) { setError(propertyError.message); setLoading(false); return }
