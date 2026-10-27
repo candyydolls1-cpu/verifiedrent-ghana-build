@@ -13,7 +13,7 @@ const landlordSteps = [
 ]
 
 const tenantSteps = [
-  { icon: UserRound, title: 'Sign up for free', body: 'Create your account at no cost and start looking for a place that feels like home.' },
+  { icon: UserRound, title: 'Browse homes for free', body: 'Explore listings and contact landlords without an account. Signing up is optional.' },
   { icon: Search, title: 'Search for homes', body: 'Filter by region, property type, price, and bedrooms. Every listing comes from a real landlord.' },
   { icon: BadgeCheck, title: 'Look for the green badge', body: 'The Verified Landlord badge means that person has been confirmed by us.' },
   { icon: MessageCircle, title: 'Contact directly', body: 'Found a home you love? Reach the landlord by phone or WhatsApp with one tap. No middleman, no broker.' },
