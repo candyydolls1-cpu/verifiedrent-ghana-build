@@ -33,7 +33,7 @@ export function PropertyDetail({ property, landlord, contact, listingCount }: { 
   const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : ''
   const callHref = internationalPhone ? `tel:+${internationalPhone}` : ''
   const landlordName = contact?.full_name || contact?.full_legal_name || landlord?.full_name || 'Landlord'
-  const VerifiedTick = landlordVerified ? <span className="inline-flex size-5 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white" aria-label="Verified landlord">✓</span> : null
+  const VerifiedTick = landlordVerified ? <span className="inline-flex size-5 items-center justify-center rounded-full bg-amber-500 text-xs font-black text-amber-950" aria-label="Verified landlord">✓</span> : null
   const directionsQuery = property.gps_address || [property.city_name, property.neighborhood].filter(Boolean).join(', ')
   const isSampleListing = property.id === '9a681109-7612-4b96-8e13-d9b7bb3b66a0'
   const amenities = Array.isArray(property.amenities) ? property.amenities : typeof property.amenities === 'string' ? property.amenities.split(',').map((item: string) => item.trim()).filter(Boolean) : []
