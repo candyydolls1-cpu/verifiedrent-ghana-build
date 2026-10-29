@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { AndroidInstallBanner } from '@/components/android-install-banner'
 import { BackgroundLogo } from '@/components/background-logo'
 import './globals.css'
 
@@ -54,6 +55,7 @@ export default function RootLayout({
         </noscript>
         <BackgroundLogo />
         <main className="relative z-10">{children}</main>
+        <AndroidInstallBanner />
         {process.env.NODE_ENV === 'production' && <Analytics />}
 
       </body>
