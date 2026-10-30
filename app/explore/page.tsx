@@ -9,10 +9,10 @@ export default async function ExplorePage() {
   const [{ data: properties, error }, { data: videos }] = await Promise.all([
     supabase
       .from('properties')
-      .select('id,title,rent_amount,property_type,region_id,city_id,is_verified_landlord,created_at,cities(name),property_images(image_url,is_primary,display_order)')
+      .select('id,title,rent_amount,view_count,property_type,region_id,city_id,is_verified_landlord,created_at,cities(name),property_images(image_url,is_primary,display_order)')
       .eq('status', 'published')
       .order('created_at', { ascending: false }),
-    supabase.from('property_videos').select('id,title,video_url,created_at').eq('property_type', 'tour').order('created_at', { ascending: false }),
+    supabase.from('property_videos').select('id,title,video_url,view_count,created_at').eq('property_type', 'tour').order('created_at', { ascending: false }),
   ])
 
   const listings = (properties ?? []).map((property) => {
