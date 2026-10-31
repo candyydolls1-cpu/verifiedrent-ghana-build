@@ -63,19 +63,25 @@ export function ExploreFeed({ properties, videos, likeCounts, loadError }: Explo
   }, [videos])
 
   useEffect(() => {
-    const loadAuthState = async () => {
-      const supabase = createClient()
-      const { data } = await supabase.auth.getUser()
-      if (data.user) {
-        const { data: likes } = await supabase.from('property_likes').select('property_id').eq('user_id', data.user.id)
-        setUserId(data.user.id)
-        setLiked((likes ?? []).map((like) => like.property_id))
-      } else {
-        setUserId(null)
-        setLiked([])
-      }
-      setAuthReady(true)
-    }
+  const loadAuthState = async () => {
+  try {
+  const supabase = createClient()
+  const { data } = await supabase.auth.getUser()
+  if (data.user) {
+  const { data: likes, error: likesError } = await supabase.from('property_likes').select('property_id').eq('user_id', data.user.id)
+  setUserId(data.user.id)
+  setLiked(likesError ? [] : (likes ?? []).map((like) => like.property_id))
+  } else {
+  setUserId(null)
+  setLiked([])
+  }
+  } catch {
+  setUserId(null)
+  setLiked([])
+  } finally {
+  setAuthReady(true)
+  }
+  }
     void loadAuthState()
   }, [])
 
@@ -87,8 +93,8 @@ export function ExploreFeed({ properties, videos, likeCounts, loadError }: Explo
     const wasLiked = liked.includes(propertyId)
     setLiked((current) => wasLiked ? current.filter((id) => id !== propertyId) : [...current, propertyId])
     setCounts((current) => ({ ...current, [propertyId]: Math.max(0, (current[propertyId] ?? 0) + (wasLiked ? -1 : 1)) }))
-    const supabase = createClient()
     try {
+      const supabase = createClient()
       const result = wasLiked
         ? await supabase.from('property_likes').delete().eq('property_id', propertyId).eq('user_id', userId)
         : await supabase.from('property_likes').insert({ property_id: propertyId, user_id: userId })
