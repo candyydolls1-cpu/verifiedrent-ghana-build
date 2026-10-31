@@ -26,6 +26,7 @@ export default function AuthPage() {
   const [confirmationPending, setConfirmationPending] = useState(false)
   const [roleRescue, setRoleRescue] = useState(false)
   const [rescueLoading, setRescueLoading] = useState(false)
+  const [nextPath, setNextPath] = useState<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -33,6 +34,8 @@ export default function AuthPage() {
     if (params.has('code') || hash.has('access_token') || hash.get('type') === 'recovery') { router.replace('/auth/reset' + window.location.search + window.location.hash); return }
     const requestedMode = params.get('mode')
     const requestedRole = params.get('role')
+    const requestedNext = params.get('next')
+    if (requestedNext && /^\/(?!\/)/.test(requestedNext) && !requestedNext.includes('://')) setNextPath(requestedNext)
     if (requestedMode === 'signup') setMode('signup')
     if (requestedRole === 'landlord') setRole('landlord')
     const error = params.get('error')
@@ -92,7 +95,7 @@ export default function AuthPage() {
         return
       }
 
-      router.replace(role === 'landlord' ? '/dashboard' : '/tenant')
+      router.replace(nextPath ?? (role === 'landlord' ? '/dashboard' : '/tenant'))
       router.refresh()
       return
     }
@@ -129,7 +132,7 @@ export default function AuthPage() {
         return
       }
 
-      const destination = role === 'landlord' ? '/dashboard' : '/tenant'
+      const destination = nextPath ?? (role === 'landlord' ? '/dashboard' : '/tenant')
       setMessage(`Authentication successful, redirecting to ${destination}...`)
       setLoading(false)
       router.replace(destination)
@@ -147,7 +150,7 @@ export default function AuthPage() {
     if (!user) { setMessage('Your session expired. Please sign in again.'); setRescueLoading(false); return }
     const { error } = await supabase.from('profiles').upsert({ id: user.id, role: nextRole }, { onConflict: 'id' })
     if (error) { setMessage(error.message); setRescueLoading(false); return }
-    router.replace(nextRole === 'landlord' ? '/dashboard' : '/tenant')
+    router.replace(nextPath ?? (nextRole === 'landlord' ? '/dashboard' : '/tenant'))
     router.refresh()
   }
 
