@@ -6,7 +6,7 @@ export const revalidate = 0
 
 export default async function ExplorePage() {
   const supabase = await createClient()
-  const [{ data: properties, error }, { data: videos }, { data: likes }, { data: videoComments }] = await Promise.all([
+  const [{ data: properties, error }, { data: videos }, { data: likes }, { data: videoComments }, { data: propertyComments }] = await Promise.all([
     supabase
       .from('properties')
       .select('id,title,rent_amount,view_count,landlord_id,property_type,region_id,city_id,is_verified_landlord,created_at,cities(name),property_images(image_url,is_primary,display_order)')
@@ -15,6 +15,7 @@ export default async function ExplorePage() {
     supabase.from('property_videos').select('id,title,video_url,view_count,created_at').eq('property_type', 'tour').order('created_at', { ascending: false }),
     supabase.from('property_likes').select('property_id'),
     supabase.from('video_comments').select('video_id'),
+    supabase.from('property_comments').select('property_id'),
   ])
 
   const landlordIds = [...new Set((properties ?? []).map((property) => property.landlord_id).filter(Boolean))]
@@ -28,5 +29,6 @@ export default async function ExplorePage() {
 
   const likeCounts = (likes ?? []).reduce<Record<string, number>>((counts, like) => { counts[like.property_id] = (counts[like.property_id] ?? 0) + 1; return counts }, {})
   const commentCounts = (videoComments ?? []).reduce<Record<string, number>>((counts, comment) => { counts[comment.video_id] = (counts[comment.video_id] ?? 0) + 1; return counts }, {})
-  return <ExploreFeed properties={listings} videos={videos ?? []} likeCounts={likeCounts} commentCounts={commentCounts} loadError={error?.message} />
+  const propertyCommentCounts = (propertyComments ?? []).reduce<Record<string, number>>((counts, comment) => { counts[comment.property_id] = (counts[comment.property_id] ?? 0) + 1; return counts }, {})
+  return <ExploreFeed properties={listings} videos={videos ?? []} likeCounts={likeCounts} commentCounts={commentCounts} propertyCommentCounts={propertyCommentCounts} loadError={error?.message} />
 }
