@@ -35,7 +35,7 @@ export default function AuthPage() {
     const requestedMode = params.get('mode')
     const requestedRole = params.get('role')
     const requestedNext = params.get('next')
-    if (requestedNext && /^\/(?!\/)/.test(requestedNext) && !requestedNext.includes('\\') && !requestedNext.includes('://') && !/[\s\u0000-\u001F\u007F]/.test(requestedNext)) setNextPath(requestedNext)
+    if (requestedNext && /^\/(?!\/)/.test(requestedNext) && !requestedNext.includes('\\') && !requestedNext.includes('://') && !/[\s\u0000-\u001F\u007F-\u009F]/.test(requestedNext)) setNextPath(requestedNext)
     if (requestedMode === 'signup') setMode('signup')
     if (requestedRole === 'landlord') setRole('landlord')
     const error = params.get('error')
