@@ -20,8 +20,8 @@ function relativeTime(value: string) {
 }
 
 function isUnsafeComment(value: string) {
-  const stripped = value.replace(/[ .(),-]/g, '')
-  return /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(stripped) || /\d{9,}/.test(stripped) || /whatsapp|telegram/i.test(stripped) || /wa\.me/i.test(value)
+  const stripped = value.replace(/[\s.,()-]/g, '')
+  return /[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(value) || /[\w%+]+@\w+/i.test(stripped) || /\d{9,}/.test(stripped) || /whatsapp|telegram/i.test(stripped) || /wa\.me/i.test(value)
 }
 
 export function VideoComments({ videoId, onClose, onCommentPosted }: VideoCommentsProps) {
