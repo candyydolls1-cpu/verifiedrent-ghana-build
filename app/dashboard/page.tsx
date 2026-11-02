@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
-  const { data: profile } = await supabase.from('profiles').select('full_name,email,role').eq('id', user.id).maybeSingle()
+  const { data: profile } = await supabase.from('profiles').select('full_name,email,role,avatar_url').eq('id', user.id).maybeSingle()
   const metadataName = String(user.user_metadata?.full_name ?? '').trim()
   const profileName = profile?.full_name?.trim() || metadataName
   if (profile?.role === 'tenant' || user.user_metadata?.role === 'tenant') {
